@@ -2,6 +2,7 @@ package io.minimum.minecraft.superbvote.votes;
 
 import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.uuid.OfflineModeUuidCache;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

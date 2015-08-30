@@ -105,6 +105,9 @@ public class SuperbVoteCommand implements CommandExecutor {
                 }
                 Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
                     List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(10, page);
+                    List<String> leaderboard = leaderboardAsUuids.stream()
+                            .map(leaderboardAsUuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(leaderboardAsUuid))
+                            .collect(Collectors.toList());
                     if (leaderboardAsUuids.isEmpty()) {
                         sender.sendMessage(ChatColor.RED + "No entries found.");
                         return;
@@ -112,9 +115,6 @@ public class SuperbVoteCommand implements CommandExecutor {
                     sender.sendMessage(ChatColor.RED.toString() + ChatColor.STRIKETHROUGH + "      " +
                             ChatColor.GRAY + " Top Players " +
                             ChatColor.RED.toString() + ChatColor.STRIKETHROUGH + "      ");
-                    List<String> leaderboard = leaderboardAsUuids.stream()
-                            .map(leaderboardAsUuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(leaderboardAsUuid))
-                            .collect(Collectors.toList());
                     for (int i = 0; i < leaderboard.size(); i++) {
                         sender.sendMessage(ChatColor.GRAY + Integer.toString(i + 1) + ". " + ChatColor.YELLOW + leaderboard.get(i));
                     }

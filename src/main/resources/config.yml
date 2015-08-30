@@ -31,6 +31,9 @@ rewards:
 # Whether or not players need to be online to vote. If set, offline player votes are queued for when the player next logs in.
 require-online: true
 
+# Whether or not the server is in online mode. Change if you run an offline-mode server.
+#online-mode: true
+
 # Broadcast settings:
 broadcast:
   # Should we broadcast votes at all?
