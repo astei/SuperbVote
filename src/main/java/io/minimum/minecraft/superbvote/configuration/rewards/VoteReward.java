@@ -1,5 +1,7 @@
-package io.minimum.minecraft.superbvote.configuration;
+package io.minimum.minecraft.superbvote.configuration.rewards;
 
+import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
+import io.minimum.minecraft.superbvote.configuration.rewards.matchers.RewardMatcher;
 import io.minimum.minecraft.superbvote.handler.Vote;
 import lombok.Data;
 import org.bukkit.Bukkit;
@@ -9,11 +11,12 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 @Data
-public class VoteService {
+public class VoteReward {
     private final String serviceName;
-    private transient final List<String> commands;
-    private transient final String playerMessage;
-    private transient final String broadcastMessage;
+    private final List<RewardMatcher> rewardMatchers;
+    private final List<String> commands;
+    private final String playerMessage;
+    private final String broadcastMessage;
 
     public void broadcastVote(Vote vote) {
         Player onlinePlayer = Bukkit.getPlayer(vote.getUuid());

@@ -1,0 +1,19 @@
+package io.minimum.minecraft.superbvote.configuration.rewards.matchers;
+
+import io.minimum.minecraft.superbvote.handler.Vote;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
+@RequiredArgsConstructor
+@ToString
+public class PermissionRewardMatcher implements RewardMatcher {
+    private final String permission;
+
+    @Override
+    public boolean matches(Vote vote) {
+        Player player = Bukkit.getPlayer(vote.getUuid());
+        return player != null && player.hasPermission(permission);
+    }
+}

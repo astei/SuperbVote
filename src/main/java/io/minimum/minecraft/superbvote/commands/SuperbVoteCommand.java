@@ -1,7 +1,8 @@
 package io.minimum.minecraft.superbvote.commands;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
-import io.minimum.minecraft.superbvote.configuration.VoteService;
+import io.minimum.minecraft.superbvote.configuration.rewards.VoteReward;
+import io.minimum.minecraft.superbvote.handler.SuperbPreVoteEvent;
 import io.minimum.minecraft.superbvote.handler.SuperbVoteEvent;
 import io.minimum.minecraft.superbvote.handler.Vote;
 import org.bukkit.Bukkit;
@@ -182,19 +183,24 @@ public class SuperbVoteCommand implements CommandExecutor {
                     return true;
                 }
 
-                VoteService service = SuperbVote.getPlugin().getConfiguration().getService(args[2]);
+                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+                    Vote vote = new Vote(player.getName(), player.getUniqueId(), args[2], new Date());
+                    VoteReward bestReward = SuperbVote.getPlugin().getConfiguration().getBestReward(vote);
+                    SuperbPreVoteEvent preVoteEvent = new SuperbPreVoteEvent(vote);
+                    preVoteEvent.setVoteReward(bestReward);
+                    Bukkit.getPluginManager().callEvent(preVoteEvent);
 
-                if (service == null) {
-                    sender.sendMessage(ChatColor.RED + "That service is not valid.");
-                    return true;
-                }
-
-                Vote vote = new Vote(player.getName(), player.getUniqueId(), service, args[2], new Date());
-
-                service.broadcastVote(vote);
-                Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote));
-
-                sender.sendMessage(ChatColor.GREEN + "You have created a fake vote for " + player.getName() + ".");
+                    if (preVoteEvent.getResult() == SuperbPreVoteEvent.Result.PROCESS_VOTE) {
+                        Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> {
+                            Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote, preVoteEvent.getVoteReward()));
+                            sender.sendMessage(ChatColor.GREEN + "You have created a fake vote for " + player.getName() + ".");
+                        });
+                    } else if (preVoteEvent.getResult() == SuperbPreVoteEvent.Result.QUEUE_VOTE) {
+                        sender.sendMessage(ChatColor.RED + "The fake vote for " + player.getName() + " would be queued. Bailing.");
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "The fake vote for " + player.getName() + " was cancelled.");
+                    }
+                });
                 break;
             case "reload":
                 if (!sender.hasPermission("superbvote.admin")) {

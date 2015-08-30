@@ -1,5 +1,6 @@
 package io.minimum.minecraft.superbvote.handler;
 
+import io.minimum.minecraft.superbvote.configuration.rewards.VoteReward;
 import lombok.Getter;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -9,10 +10,13 @@ public class SuperbVoteEvent extends Event {
     private static final HandlerList handlerList = new HandlerList();
     @Getter
     private final Vote vote;
+    @Getter
+    private VoteReward voteReward;
 
-    public SuperbVoteEvent(Vote vote) {
+    public SuperbVoteEvent(Vote vote, VoteReward reward) {
         super();
         this.vote = vote;
+        this.voteReward = reward;
     }
 
     @Override

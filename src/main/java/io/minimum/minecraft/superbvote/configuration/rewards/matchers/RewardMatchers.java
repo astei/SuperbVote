@@ -1,0 +1,38 @@
+package io.minimum.minecraft.superbvote.configuration.rewards.matchers;
+
+import io.minimum.minecraft.superbvote.SuperbVote;
+import org.bukkit.configuration.ConfigurationSection;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class RewardMatchers {
+    public static List<RewardMatcher> getMatchers(ConfigurationSection section) {
+        if (section == null) return Collections.emptyList();
+        List<RewardMatcher> matchers = new ArrayList<>();
+
+        // permission: <permission>
+        String perm = section.getString("permission", null);
+        if (perm != null) {
+            if (!SuperbVote.getPlugin().getConfig().getBoolean("require-online")) {
+                SuperbVote.getPlugin().getLogger().warning("'permission' vote rewards require that the player be online. Set 'require-online' to 'true' in your configuration.");
+            }
+            matchers.add(new PermissionRewardMatcher(perm));
+        }
+
+        // chance: <chance>
+        Object chanceObject = section.get("chance");
+        if (chanceObject != null && chanceObject instanceof Integer) {
+            matchers.add(new ChanceRewardMatcher((int) chanceObject));
+        }
+
+        // service: <service>
+        String service = section.getString("service",  null);
+        if (service != null) {
+            matchers.add(new ServiceRewardMatcher(service));
+        }
+
+        return matchers;
+    }
+}
