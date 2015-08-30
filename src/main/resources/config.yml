@@ -44,6 +44,6 @@ broadcast:
 
 # Vote reminder.
 vote-reminder:
-  message: "&aDon't forget to vote for us! You currently have &c%votes%&c votes."
+  message: "&cDon't forget to vote for us! You currently have &a%votes%&c votes."
   on-join: true
   repeat: 180

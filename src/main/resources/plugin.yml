@@ -1,7 +1,7 @@
 name: SuperbVote
 main: io.minimum.minecraft.superbvote.SuperbVote
 author: tuxed
-version: 0.1
+version: 0.2
 depend: [Votifier]
 commands:
   superbvote:

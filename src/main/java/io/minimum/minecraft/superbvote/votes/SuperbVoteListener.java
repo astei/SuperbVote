@@ -82,10 +82,12 @@ public class SuperbVoteListener implements Listener {
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
             votes.forEach(v -> processVote(v, false, false, true));
             if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join")) {
-                int count = SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId());
                 String text = SuperbVote.getPlugin().getConfig().getString("vote-reminder.message");
-                event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        SuperbVoteConfiguration.replacePlaceholders(text, event.getPlayer().getName(), count)));
+                if (text != null && !text.isEmpty()) {
+                    int count = SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId());
+                    event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
+                            SuperbVoteConfiguration.replacePlaceholders(text, event.getPlayer().getName(), count)));
+                }
             }
         });
     }

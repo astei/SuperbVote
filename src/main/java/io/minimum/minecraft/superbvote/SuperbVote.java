@@ -59,8 +59,11 @@ public class SuperbVote extends JavaPlugin {
         }
 
         int r = getConfig().getInt("vote-reminder.repeat");
-        if (r > 0) {
-            getServer().getScheduler().runTaskTimerAsynchronously(this, new VoteReminder(), 20 * r, 20 * r);
+        String text = SuperbVote.getPlugin().getConfig().getString("vote-reminder.message");
+        if (text != null && !text.isEmpty()) {
+            if (r > 0) {
+                getServer().getScheduler().runTaskTimerAsynchronously(this, new VoteReminder(), 20 * r, 20 * r);
+            }
         }
     }
 
