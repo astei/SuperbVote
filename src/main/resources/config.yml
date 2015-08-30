@@ -1,0 +1,27 @@
+# SuperbVote configuration
+# A superb vote plugin made by Tux.
+#
+# https://minecraft.minimum.io/wiki/SuperbVote
+
+# Database configuration.
+# Currently supported: "json".
+storage:
+  database: json
+  json:
+    file: votes.json
+
+# Services. This will be the main section to edit.
+services:
+  # Default service, used when no others are defined.
+  default:
+    commands:
+    - eco give %player% 1000
+    player-message: "&aThanks for voting for us on %service%, you have been rewarded with $1000."
+    broadcast-message: "&a%player% has voted for us on %service% and was rewarded with $1000!"
+  SpecialService:
+    # Set to false if you don't want to inherit commands and messages from the default service.
+    inherit-default: true
+    commands:
+    - give %player% diamond 4
+    player-message: "&aThanks for voting for us on my favorite server list %service%, you have been rewarded with 4 diamonds and $1000."
+    broadcast-message: "&a%player% has voted for us on my favorite server list %service% and was rewarded with 4 diamonds and $1000!"

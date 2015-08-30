@@ -1,0 +1,9 @@
+name: SuperbVote
+main: io.minimum.minecraft.superbvote.SuperbVote
+author: tuxed
+version: 0.1
+depend: [Votifier]
+commands:
+  superbvote:
+    description: SuperbVote main command.
+    aliases: [sv]
