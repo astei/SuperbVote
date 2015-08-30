@@ -15,7 +15,7 @@ rewards:
   # Example of matchers.
   - if:
       permission: superbvote.test
-      chance: 3
+      chance: 100
       service: SpecialService
     commands:
     - give %player% diamond 4
