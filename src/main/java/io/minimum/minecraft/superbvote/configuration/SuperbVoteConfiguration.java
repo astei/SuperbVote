@@ -114,6 +114,15 @@ public class SuperbVoteConfiguration {
         return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName());
     }
 
+    public static String replacePlaceholders(String text, Vote vote, int votes) {
+        return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName())
+                .replaceAll("%votes%", Integer.toString(votes));
+    }
+
+    public static String replacePlaceholders(String text, String player, int votes) {
+        return text.replaceAll("%player%", player).replaceAll("%votes%", Integer.toString(votes));
+    }
+
     public VoteStorage initializeVoteStorage() throws IOException {
         String storage = configuration.getString("storage.database");
         if (!SUPPORTED_STORAGE.contains(storage)) {

@@ -41,3 +41,9 @@ broadcast:
 
   # Should we broadcast queued votes?
   queued: true
+
+# Vote reminder.
+vote-reminder:
+  message: "&aDon't forget to vote for us! You currently have &c%votes%&c votes."
+  on-join: true
+  repeat: 180

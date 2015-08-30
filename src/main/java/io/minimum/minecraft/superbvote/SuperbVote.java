@@ -9,6 +9,7 @@ import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.uuid.UuidCache;
+import io.minimum.minecraft.superbvote.votes.VoteReminder;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -55,6 +56,11 @@ public class SuperbVote extends JavaPlugin {
 
         if (uuidCache instanceof OfflineModeUuidCache) {
             getServer().getScheduler().runTaskTimerAsynchronously(this, ((OfflineModeUuidCache) uuidCache)::save, 20, 20 * 30);
+        }
+
+        int r = getConfig().getInt("vote-reminder.repeat");
+        if (r > 0) {
+            getServer().getScheduler().runTaskTimerAsynchronously(this, new VoteReminder(), 20 * r, 20 * r);
         }
     }
 

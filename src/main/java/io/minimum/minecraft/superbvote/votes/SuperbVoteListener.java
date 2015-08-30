@@ -2,9 +2,11 @@ package io.minimum.minecraft.superbvote.votes;
 
 import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
 import io.minimum.minecraft.superbvote.uuid.OfflineModeUuidCache;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -77,6 +79,14 @@ public class SuperbVoteListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         SuperbVote.getPlugin().getUuidCache().cachePlayer(event.getPlayer());
         List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
-        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> votes.forEach(v -> processVote(v, false, false, true)));
+        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+            votes.forEach(v -> processVote(v, false, false, true));
+            if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join")) {
+                int count = SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId());
+                String text = SuperbVote.getPlugin().getConfig().getString("vote-reminder.message");
+                event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
+                        SuperbVoteConfiguration.replacePlaceholders(text, event.getPlayer().getName(), count)));
+            }
+        });
     }
 }
