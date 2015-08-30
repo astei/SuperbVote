@@ -44,6 +44,7 @@ public class OfflineModeUuidCache implements UuidCache {
             return nameToUuid.get(name);
         UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8));
         nameToUuid.put(name, uuid);
+        uuidToName.put(uuid, name);
         return uuid;
     }
 
