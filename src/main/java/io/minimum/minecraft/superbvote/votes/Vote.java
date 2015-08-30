@@ -1,4 +1,4 @@
-package io.minimum.minecraft.superbvote.handler;
+package io.minimum.minecraft.superbvote.votes;
 
 import lombok.Data;
 

@@ -2,8 +2,8 @@ package io.minimum.minecraft.superbvote;
 
 import io.minimum.minecraft.superbvote.commands.SuperbVoteCommand;
 import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
-import io.minimum.minecraft.superbvote.handler.SuperbVoteHandler;
-import io.minimum.minecraft.superbvote.handler.SuperbVoteListener;
+import io.minimum.minecraft.superbvote.votes.SuperbVoteHandler;
+import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.uuid.UuidCache;

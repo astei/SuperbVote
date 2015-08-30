@@ -1,4 +1,4 @@
-package io.minimum.minecraft.superbvote.configuration.rewards.matchers;
+package io.minimum.minecraft.superbvote.votes.rewards.matchers;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
 import org.bukkit.configuration.ConfigurationSection;

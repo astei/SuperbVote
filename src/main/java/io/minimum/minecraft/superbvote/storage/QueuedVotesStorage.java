@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.minimum.minecraft.superbvote.handler.Vote;
+import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.io.*;
 import java.util.List;

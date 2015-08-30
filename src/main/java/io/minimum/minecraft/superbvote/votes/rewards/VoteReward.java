@@ -1,8 +1,8 @@
-package io.minimum.minecraft.superbvote.configuration.rewards;
+package io.minimum.minecraft.superbvote.votes.rewards;
 
 import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
-import io.minimum.minecraft.superbvote.configuration.rewards.matchers.RewardMatcher;
-import io.minimum.minecraft.superbvote.handler.Vote;
+import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
+import io.minimum.minecraft.superbvote.votes.Vote;
 import lombok.Data;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,13 +18,13 @@ public class VoteReward {
     private final String playerMessage;
     private final String broadcastMessage;
 
-    public void broadcastVote(Vote vote) {
+    public void broadcastVote(Vote vote, boolean onlyOnline) {
         Player onlinePlayer = Bukkit.getPlayer(vote.getUuid());
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (player == onlinePlayer) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                         SuperbVoteConfiguration.replacePlaceholders(playerMessage, vote)));
-            } else {
+            } else if (!onlyOnline) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                         SuperbVoteConfiguration.replacePlaceholders(broadcastMessage, vote)));
             }

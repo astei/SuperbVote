@@ -1,4 +1,4 @@
-package io.minimum.minecraft.superbvote.handler;
+package io.minimum.minecraft.superbvote.votes;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

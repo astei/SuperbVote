@@ -1,6 +1,6 @@
-package io.minimum.minecraft.superbvote.configuration.rewards.matchers;
+package io.minimum.minecraft.superbvote.votes.rewards.matchers;
 
-import io.minimum.minecraft.superbvote.handler.Vote;
+import io.minimum.minecraft.superbvote.votes.Vote;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.bukkit.Bukkit;

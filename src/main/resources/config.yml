@@ -30,3 +30,11 @@ rewards:
 
 # Whether or not players need to be online to vote. If set, offline player votes are queued for when the player next logs in.
 require-online: true
+
+# Broadcast settings:
+broadcast:
+  # Should we broadcast votes at all?
+  enabled: true
+
+  # Should we broadcast queued votes?
+  queued: true

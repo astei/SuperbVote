@@ -1,10 +1,10 @@
 package io.minimum.minecraft.superbvote.commands;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
-import io.minimum.minecraft.superbvote.configuration.rewards.VoteReward;
-import io.minimum.minecraft.superbvote.handler.SuperbPreVoteEvent;
-import io.minimum.minecraft.superbvote.handler.SuperbVoteEvent;
-import io.minimum.minecraft.superbvote.handler.Vote;
+import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
+import io.minimum.minecraft.superbvote.votes.SuperbPreVoteEvent;
+import io.minimum.minecraft.superbvote.votes.SuperbVoteEvent;
+import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

@@ -1,6 +1,6 @@
-package io.minimum.minecraft.superbvote.handler;
+package io.minimum.minecraft.superbvote.votes;
 
-import io.minimum.minecraft.superbvote.configuration.rewards.VoteReward;
+import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.event.Event;
