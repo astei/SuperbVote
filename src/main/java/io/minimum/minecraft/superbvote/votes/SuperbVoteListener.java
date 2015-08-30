@@ -57,7 +57,7 @@ public class SuperbVoteListener implements Listener {
                     throw new RuntimeException("No vote reward found for '" + vote + "'");
                 }
 
-                preVoteEvent.getVoteReward().broadcastVote(vote, broadcast || !queued);
+                preVoteEvent.getVoteReward().broadcastVote(vote, !queued, broadcast && !queued);
 
                 SuperbVote.getPlugin().getVoteStorage().addVote(vote.getUuid());
                 Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> {
@@ -66,7 +66,7 @@ public class SuperbVoteListener implements Listener {
                 break;
             case QUEUE_VOTE:
                 SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Queuing vote from " + vote.getName() + " to be run later");
-                preVoteEvent.getVoteReward().broadcastVote(vote, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued"));
+                preVoteEvent.getVoteReward().broadcastVote(vote, false, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued"));
                 SuperbVote.getPlugin().getQueuedVotes().addVote(vote);
                 break;
             case CANCEL:

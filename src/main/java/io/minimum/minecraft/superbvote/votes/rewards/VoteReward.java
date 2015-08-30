@@ -18,10 +18,10 @@ public class VoteReward {
     private final String playerMessage;
     private final String broadcastMessage;
 
-    public void broadcastVote(Vote vote, boolean broadcast) {
+    public void broadcastVote(Vote vote, boolean playerAnnounce, boolean broadcast) {
         Player onlinePlayer = Bukkit.getPlayer(vote.getUuid());
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player == onlinePlayer) {
+            if (player == onlinePlayer && playerAnnounce) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                         SuperbVoteConfiguration.replacePlaceholders(playerMessage, vote)));
             } else if (broadcast) {
