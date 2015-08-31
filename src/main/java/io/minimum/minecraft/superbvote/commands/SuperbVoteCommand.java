@@ -104,6 +104,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                     return true;
                 }
                 Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+                    int from = 10 * page;
                     List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(10, page);
                     List<String> leaderboard = leaderboardAsUuids.stream()
                             .map(leaderboardAsUuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(leaderboardAsUuid))
@@ -116,8 +117,10 @@ public class SuperbVoteCommand implements CommandExecutor {
                             ChatColor.GRAY + " Top Players " +
                             ChatColor.RED.toString() + ChatColor.STRIKETHROUGH + "      ");
                     for (int i = 0; i < leaderboard.size(); i++) {
-                        sender.sendMessage(ChatColor.GRAY + Integer.toString(i + 1) + ". " + ChatColor.YELLOW + leaderboard.get(i));
+                        sender.sendMessage(ChatColor.GRAY + Integer.toString(from + i + 1) + ". " + ChatColor.YELLOW + leaderboard.get(i));
                     }
+                    int availablePages = SuperbVote.getPlugin().getVoteStorage().getPagesAvailable(10);
+                    sender.sendMessage(ChatColor.GRAY + "(page " + page + "/" + availablePages + ")");
                 });
                 return true;
             case "pastetop":
