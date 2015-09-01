@@ -3,8 +3,11 @@ package io.minimum.minecraft.superbvote.storage;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.io.*;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -12,6 +15,7 @@ import java.util.stream.Collectors;
 
 public class JsonVoteStorage implements VoteStorage {
     private final ConcurrentMap<UUID, Integer> voteCounts = new ConcurrentHashMap<>(32, 0.75f, 2);
+    private final ConcurrentMap<UUID, Map<String, LocalTime>> cooldowns = new ConcurrentHashMap<>(32, 0.75f, 2);
     private final Gson gson = new Gson();
     private final File saveTo;
 
@@ -26,6 +30,19 @@ public class JsonVoteStorage implements VoteStorage {
             }.getType());
             if (votes != null) voteCounts.putAll(votes);
         }
+    }
+
+    @Override
+    public boolean issueVote(Vote vote) {
+        Map<String, LocalTime> lastVoteMap = cooldowns.computeIfAbsent(vote.getUuid(), (ignored) -> new ConcurrentHashMap<>(8, 0.75f, 2));
+        LocalTime lastTime = lastVoteMap.get(vote.getServiceName());
+        if (lastTime == null || lastTime.isBefore(LocalTime.now().minusSeconds(
+                SuperbVote.getPlugin().getConfig().getInt("votes.cooldown-per-service", 3600)))) {
+            lastVoteMap.put(vote.getServiceName(), LocalTime.now());
+            addVote(vote.getUuid());
+            return true;
+        }
+        return false;
     }
 
     @Override

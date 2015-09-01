@@ -1,9 +1,12 @@
 package io.minimum.minecraft.superbvote.storage;
 
+import io.minimum.minecraft.superbvote.votes.Vote;
+
 import java.util.List;
 import java.util.UUID;
 
 public interface VoteStorage {
+    boolean issueVote(Vote vote);
     void addVote(UUID player);
     void setVotes(UUID player, int votes);
     void clearVotes();

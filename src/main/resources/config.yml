@@ -10,6 +10,12 @@ storage:
   json:
     file: votes.json
 
+# General vote configuration.
+votes:
+  # At least this many seconds need to pass before allowing another vote (per-service). This will apply per service.
+  # Default: 3600 seconds (1 hour)
+  cooldown-per-service: 3600
+
 # Rewards. This is the main section you will need to edit. Ordering is important.
 rewards:
   # Example of matchers.
