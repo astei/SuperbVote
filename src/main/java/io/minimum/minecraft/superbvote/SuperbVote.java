@@ -2,6 +2,7 @@ package io.minimum.minecraft.superbvote;
 
 import io.minimum.minecraft.superbvote.commands.SuperbVoteCommand;
 import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
+import io.minimum.minecraft.superbvote.scoreboard.ScoreboardHandler;
 import io.minimum.minecraft.superbvote.uuid.OfflineModeUuidCache;
 import io.minimum.minecraft.superbvote.uuid.OnlineModeUuidCache;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteHandler;
@@ -27,6 +28,8 @@ public class SuperbVote extends JavaPlugin {
     private UuidCache uuidCache;
     @Getter
     private QueuedVotesStorage queuedVotes;
+    @Getter
+    private ScoreboardHandler scoreboardHandler;
 
     @Override
     public void onEnable() {
@@ -47,12 +50,14 @@ public class SuperbVote extends JavaPlugin {
         }
 
         uuidCache = configuration.initializeUuidCache();
+        scoreboardHandler = new ScoreboardHandler();
 
         getCommand("superbvote").setExecutor(new SuperbVoteCommand());
         getServer().getPluginManager().registerEvents(new SuperbVoteListener(), this);
         getServer().getPluginManager().registerEvents(new SuperbVoteHandler(), this);
         getServer().getScheduler().runTaskTimerAsynchronously(this, voteStorage::save, 20, 20 * 30);
         getServer().getScheduler().runTaskTimerAsynchronously(this, queuedVotes::save, 20, 20 * 30);
+        getServer().getScheduler().runTaskTimerAsynchronously(this, scoreboardHandler, 20, 20 * 3);
 
         if (uuidCache instanceof OfflineModeUuidCache) {
             getServer().getScheduler().runTaskTimerAsynchronously(this, ((OfflineModeUuidCache) uuidCache)::save, 20, 20 * 30);

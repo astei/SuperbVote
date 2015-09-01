@@ -47,3 +47,17 @@ vote-reminder:
   message: "&cDon't forget to vote for us! You currently have &a%votes%&c votes."
   on-join: true
   repeat: 180
+
+# Controls the /sv <top/leaderboard> command.
+leaderboard:
+  # Supported: text, scoreboard
+  display: text
+
+  # The text format supports pagination.
+  text:
+    per-page: 10
+
+  # Control the scoreboard.
+  scoreboard:
+    title: Top voters
+    max: 10

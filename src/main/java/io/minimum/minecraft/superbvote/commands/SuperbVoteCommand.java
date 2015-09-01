@@ -103,25 +103,39 @@ public class SuperbVoteCommand implements CommandExecutor {
                     sender.sendMessage(ChatColor.RED + "Page number is not valid.");
                     return true;
                 }
-                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
-                    int from = 10 * page;
-                    List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(10, page);
-                    List<String> leaderboard = leaderboardAsUuids.stream()
-                            .map(leaderboardAsUuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(leaderboardAsUuid))
-                            .collect(Collectors.toList());
-                    if (leaderboardAsUuids.isEmpty()) {
-                        sender.sendMessage(ChatColor.RED + "No entries found.");
-                        return;
-                    }
-                    sender.sendMessage(ChatColor.RED.toString() + ChatColor.STRIKETHROUGH + "      " +
-                            ChatColor.GRAY + " Top Players " +
-                            ChatColor.RED.toString() + ChatColor.STRIKETHROUGH + "      ");
-                    for (int i = 0; i < leaderboard.size(); i++) {
-                        sender.sendMessage(ChatColor.GRAY + Integer.toString(from + i + 1) + ". " + ChatColor.YELLOW + leaderboard.get(i));
-                    }
-                    int availablePages = SuperbVote.getPlugin().getVoteStorage().getPagesAvailable(10);
-                    sender.sendMessage(ChatColor.GRAY + "(page " + page + "/" + availablePages + ")");
-                });
+
+                String format = !(sender instanceof Player) ? "text" :
+                        SuperbVote.getPlugin().getConfig().getString("leaderboard.display", "text");
+
+                switch (format) {
+                    case "text":
+                    default:
+                        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+                            int c = SuperbVote.getPlugin().getConfig().getInt("leaderboard.text.per-page", 10);
+                            int from = c * (page + 1);
+                            List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(c, page);
+                            List<String> leaderboard = leaderboardAsUuids.stream()
+                                    .map(leaderboardAsUuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(leaderboardAsUuid))
+                                    .collect(Collectors.toList());
+                            if (leaderboardAsUuids.isEmpty()) {
+                                sender.sendMessage(ChatColor.RED + "No entries found.");
+                                return;
+                            }
+                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.STRIKETHROUGH + "      " +
+                                    ChatColor.GRAY + " Top Players " +
+                                    ChatColor.RED.toString() + ChatColor.STRIKETHROUGH + "      ");
+                            for (int i = 0; i < leaderboard.size(); i++) {
+                                sender.sendMessage(ChatColor.GRAY + Integer.toString(from + i + 1) + ". " + ChatColor.YELLOW + leaderboard.get(i));
+                            }
+                            int availablePages = SuperbVote.getPlugin().getVoteStorage().getPagesAvailable(10);
+                            sender.sendMessage(ChatColor.GRAY + "(page " + (page + 1) + "/" + availablePages + ")");
+                        });
+                        break;
+                    case "scoreboard":
+                        SuperbVote.getPlugin().getScoreboardHandler().toggle((Player) sender);
+                        break;
+                }
+
                 return true;
             case "pastetop":
                 if (!sender.hasPermission("superbvote.admin")) {
