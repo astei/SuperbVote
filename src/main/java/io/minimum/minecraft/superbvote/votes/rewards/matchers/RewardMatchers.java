@@ -28,9 +28,15 @@ public class RewardMatchers {
         }
 
         // service: <service>
-        String service = section.getString("service",  null);
+        String service = section.getString("service", null);
         if (service != null) {
             matchers.add(new ServiceRewardMatcher(service));
+        }
+
+        // cumulative-votes: <votes>
+        Object cumulativeObject = section.get("cumulative-votes");
+        if (cumulativeObject != null && cumulativeObject instanceof Integer) {
+            matchers.add(new CumulativeVotesRewardMatcher((int) cumulativeObject));
         }
 
         return matchers;
