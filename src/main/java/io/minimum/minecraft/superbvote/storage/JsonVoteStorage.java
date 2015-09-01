@@ -35,6 +35,17 @@ public class JsonVoteStorage implements VoteStorage {
     }
 
     @Override
+    public void setVotes(UUID player, int votes) {
+        Preconditions.checkNotNull(player, "player");
+        Preconditions.checkArgument(votes >= 0, "votes out of bound");
+        if (votes == 0) {
+            voteCounts.remove(player);
+        } else {
+            voteCounts.put(player, votes);
+        }
+    }
+
+    @Override
     public void clearVotes() {
         voteCounts.clear();
     }

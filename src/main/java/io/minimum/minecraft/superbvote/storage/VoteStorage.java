@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public interface VoteStorage {
     void addVote(UUID player);
+    void setVotes(UUID player, int votes);
     void clearVotes();
     int getVotes(UUID player);
     List<UUID> getTopVoters(int amount, int page);

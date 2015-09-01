@@ -1,6 +1,8 @@
 package io.minimum.minecraft.superbvote.commands;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.migration.GAListenerMigration;
+import io.minimum.minecraft.superbvote.migration.Migration;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import io.minimum.minecraft.superbvote.votes.SuperbPreVoteEvent;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteEvent;
@@ -39,6 +41,9 @@ public class SuperbVoteCommand implements CommandExecutor {
 
             sender.sendMessage(ChatColor.GRAY + ChatColor.BOLD.toString() + "/sv fakevote <player> [service]");
             sender.sendMessage(ChatColor.GRAY + "Issues a fake vote for the specified player.");
+
+            sender.sendMessage(ChatColor.GRAY + ChatColor.BOLD.toString() + "/sv migrate <gal>");
+            sender.sendMessage(ChatColor.GRAY + "Migrate votes from another vote plugin.");
 
             sender.sendMessage(ChatColor.GRAY + ChatColor.BOLD.toString() + "/sv reload");
             sender.sendMessage(ChatColor.GRAY + "Reloads the plugin's configuration.");
@@ -235,6 +240,37 @@ public class SuperbVoteCommand implements CommandExecutor {
                 SuperbVote.getPlugin().getVoteStorage().clearVotes();
                 SuperbVote.getPlugin().getQueuedVotes().clearVotes();
                 sender.sendMessage(ChatColor.GREEN + "All votes cleared.");
+                return true;
+            case "migrate":
+                if (!sender.hasPermission("superbvote.admin")) {
+                    sender.sendMessage(ChatColor.RED + "You can't do this.");
+                    return true;
+                }
+                if (args.length != 2) {
+                    sender.sendMessage(ChatColor.RED + "Need to specify an argument.");
+                    sender.sendMessage(ChatColor.RED + "/sv migrate <gal>");
+                    sender.sendMessage(ChatColor.RED + "Migrate votes from another vote plugin.");
+                    return true;
+                }
+                Migration migration;
+                switch (args[0]) {
+                    case "gal":
+                        migration = new GAListenerMigration();
+                        break;
+                    default:
+                        sender.sendMessage(ChatColor.RED + "Not a valid listener. Currently supported: gal.");
+                        return true;
+                }
+                sender.sendMessage(ChatColor.GRAY + "Migrating... (this may take several minutes)");
+                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+                    try {
+                        migration.execute();
+                        sender.sendMessage(ChatColor.GREEN + "Migration succeeded!");
+                    } catch (Exception e) {
+                        SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to migrate", e);
+                        sender.sendMessage(ChatColor.RED + "Migration failed. Check the console for details.");
+                    }
+                });
                 return true;
             default:
                 sendHelp(sender);
