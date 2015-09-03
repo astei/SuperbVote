@@ -56,6 +56,12 @@ public class GAListenerMigration implements Migration {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Unable to migrate database", e);
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException ignored) {
+                // Ignore. How can we possibly clean this up?!?
+            }
         }
     }
 }
