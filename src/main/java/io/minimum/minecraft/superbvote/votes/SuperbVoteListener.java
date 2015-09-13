@@ -3,7 +3,6 @@ package io.minimum.minecraft.superbvote.votes;
 import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
-import io.minimum.minecraft.superbvote.uuid.OfflineModeUuidCache;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -79,7 +78,6 @@ public class SuperbVoteListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        SuperbVote.getPlugin().getUuidCache().cachePlayer(event.getPlayer());
         List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
             votes.forEach(v -> processVote(v, false, false, true));

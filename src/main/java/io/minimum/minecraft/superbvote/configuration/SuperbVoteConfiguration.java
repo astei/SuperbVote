@@ -3,8 +3,6 @@ package io.minimum.minecraft.superbvote.configuration;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.minimum.minecraft.superbvote.SuperbVote;
-import io.minimum.minecraft.superbvote.uuid.OfflineModeUuidCache;
-import io.minimum.minecraft.superbvote.uuid.OnlineModeUuidCache;
 import io.minimum.minecraft.superbvote.uuid.UuidCache;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
@@ -95,20 +93,6 @@ public class SuperbVoteConfiguration {
         return configuration.getBoolean("require-online", false);
     }
 
-    public UuidCache initializeUuidCache() {
-        if (configuration.get("online-mode") == null) {
-            configuration.set("online-mode", Bukkit.getServer().getOnlineMode());
-        }
-        if (configuration.getBoolean("online-mode")) {
-            return new OnlineModeUuidCache();
-        } else {
-            try {
-                return new OfflineModeUuidCache(new File(SuperbVote.getPlugin().getDataFolder(), "offline_uuid_cache.json"));
-            } catch (IOException e) {
-                throw new RuntimeException("Unable to load offline UUID cache", e);
-            }
-        }
-    }
 
     public static String replacePlaceholders(String text, Vote vote) {
         return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName());

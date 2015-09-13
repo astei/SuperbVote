@@ -24,7 +24,7 @@ public class QueuedVotesStorage {
 
         if (!file.exists()) file.createNewFile();
 
-        try (Reader reader = new FileReader(file)) {
+        try (Reader reader = new BufferedReader(new FileReader(file))) {
             Map<UUID, List<Vote>> votes = gson.fromJson(reader, new TypeToken<Map<UUID, List<Vote>>>() {
             }.getType());
             if (votes != null) voteCounts.putAll(votes);
