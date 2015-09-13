@@ -25,7 +25,7 @@ public class JsonVoteStorage implements VoteStorage {
 
         if (!file.exists()) file.createNewFile();
 
-        try (Reader reader = new FileReader(file)) {
+        try (Reader reader = new BufferedReader(new FileReader(file))) {
             Map<UUID, Integer> votes = gson.fromJson(reader, new TypeToken<Map<UUID, Integer>>() {
             }.getType());
             if (votes != null) voteCounts.putAll(votes);
@@ -91,7 +91,7 @@ public class JsonVoteStorage implements VoteStorage {
 
     @Override
     public void save() {
-        try (Writer writer = new FileWriter(saveTo)) {
+        try (Writer writer = new BufferedWriter(new FileWriter(saveTo))) {
             gson.toJson(voteCounts, writer);
         } catch (IOException e) {
             throw new RuntimeException("Unable to save votes to " + saveTo.getAbsolutePath(), e);

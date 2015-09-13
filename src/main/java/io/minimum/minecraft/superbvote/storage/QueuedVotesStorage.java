@@ -54,7 +54,7 @@ public class QueuedVotesStorage {
     }
 
     public void save() {
-        try (Writer writer = new FileWriter(saveTo)) {
+        try (Writer writer = new BufferedWriter(new FileWriter(saveTo))) {
             gson.toJson(voteCounts, writer);
         } catch (IOException e) {
             throw new RuntimeException("Unable to save votes to " + saveTo.getAbsolutePath(), e);
