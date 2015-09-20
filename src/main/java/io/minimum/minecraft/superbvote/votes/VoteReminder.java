@@ -10,10 +10,7 @@ public class VoteReminder implements Runnable {
     @Override
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            int count = SuperbVote.getPlugin().getVoteStorage().getVotes(player.getUniqueId());
-            String text = SuperbVote.getPlugin().getConfig().getString("vote-reminder.message");
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    SuperbVoteConfiguration.replacePlaceholders(text, player.getName(), count)));
+            SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(player);
         }
     }
 }

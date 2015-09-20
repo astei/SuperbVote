@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
+import io.minimum.minecraft.superbvote.configuration.message.VoteMessages;
 import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
 import io.minimum.minecraft.superbvote.uuid.UuidCache;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
@@ -27,6 +29,8 @@ public class SuperbVoteConfiguration {
     private final ConfigurationSection configuration;
     @Getter
     private final List<VoteReward> rewards;
+    @Getter
+    private final VoteMessage reminderMessage;
 
     private static final List<String> SUPPORTED_STORAGE = ImmutableList.of("json", "mysql");
 
@@ -53,16 +57,18 @@ public class SuperbVoteConfiguration {
         if (rewards.isEmpty()) {
             throw new RuntimeException("No rewards defined.");
         }
+
+        reminderMessage = VoteMessages.from(configuration, "vote-reminder.message");
     }
 
     private VoteReward deserializeReward(ConfigurationSection section) {
-        Preconditions.checkNotNull(section, "section is not valid; is the default service section missing?");
+        Preconditions.checkNotNull(section, "section is not valid");
 
         String name = section.getName();
 
         List<String> commands = section.getStringList("commands");
-        String broadcast = section.getString("broadcast-message");
-        String playerMessage = section.getString("player-message");
+        VoteMessage broadcast = VoteMessages.from(section, "broadcast-message");
+        VoteMessage playerMessage = VoteMessages.from(section, "player-message");
 
         if (broadcast == null) {
             throw new RuntimeException("'broadcast-message' missing in section '" + name + "' (do you need to enable 'inherit-default'?)");
@@ -98,15 +104,6 @@ public class SuperbVoteConfiguration {
 
     public static String replacePlaceholders(String text, Vote vote) {
         return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName());
-    }
-
-    public static String replacePlaceholders(String text, Vote vote, int votes) {
-        return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName())
-                .replaceAll("%votes%", Integer.toString(votes));
-    }
-
-    public static String replacePlaceholders(String text, String player, int votes) {
-        return text.replaceAll("%player%", player).replaceAll("%votes%", Integer.toString(votes));
     }
 
     public VoteStorage initializeVoteStorage() throws IOException {

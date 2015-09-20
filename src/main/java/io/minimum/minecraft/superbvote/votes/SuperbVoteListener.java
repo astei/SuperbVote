@@ -91,12 +91,7 @@ public class SuperbVoteListener implements Listener {
             List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
             votes.forEach(v -> processVote(v, false, false, true));
             if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join")) {
-                String text = SuperbVote.getPlugin().getConfig().getString("vote-reminder.message");
-                if (text != null && !text.isEmpty()) {
-                    int count = SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId());
-                    event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
-                            SuperbVoteConfiguration.replacePlaceholders(text, event.getPlayer().getName(), count)));
-                }
+                SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer());
             }
         });
     }
