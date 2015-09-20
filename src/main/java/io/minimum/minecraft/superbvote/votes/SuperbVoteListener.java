@@ -3,6 +3,7 @@ package io.minimum.minecraft.superbvote.votes;
 import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
+import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -22,18 +23,21 @@ public class SuperbVoteListener implements Listener {
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
             Player onlinePlayer = Bukkit.getPlayerExact(event.getVote().getUsername());
             UUID uuid;
+            String caseCorrected;
             if (onlinePlayer != null) {
                 uuid = onlinePlayer.getUniqueId();
+                caseCorrected = onlinePlayer.getName();
             } else {
+                // Permit case-correction during voting.
                 uuid = SuperbVote.getPlugin().getUuidCache().getUuidFromName(event.getVote().getUsername());
+                if (uuid == null) {
+                    SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + event.getVote().getUsername() + " as we couldn't look up their username");
+                    return;
+                }
+                caseCorrected = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid);
             }
 
-            if (uuid == null) {
-                SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + event.getVote().getUsername() + " as we couldn't look up their username");
-                return;
-            }
-
-            Vote vote = new Vote(event.getVote().getUsername(), uuid, event.getVote().getServiceName(), new Date());
+            Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(), new Date());
 
             processVote(vote, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.enabled"),
                     onlinePlayer == null && SuperbVote.getPlugin().getConfiguration().requirePlayersOnline(),
@@ -78,8 +82,13 @@ public class SuperbVoteListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+            // Update MySQL names, if we use it.
+            if (SuperbVote.getPlugin().getVoteStorage() instanceof MysqlVoteStorage) {
+                ((MysqlVoteStorage) SuperbVote.getPlugin().getVoteStorage()).updateName(event.getPlayer());
+            }
+
+            List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
             votes.forEach(v -> processVote(v, false, false, true));
             if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join")) {
                 String text = SuperbVote.getPlugin().getConfig().getString("vote-reminder.message");
