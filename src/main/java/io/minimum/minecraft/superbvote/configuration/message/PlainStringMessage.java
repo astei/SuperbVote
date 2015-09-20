@@ -14,12 +14,20 @@ public class PlainStringMessage implements VoteMessage {
 
     @Override
     public void sendAsBroadcast(Player player, Vote vote) {
-        player.sendMessage(message.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName()));
+        player.sendMessage(getAsBroadcast(player, vote));
+    }
+
+    protected String getAsBroadcast(Player player, Vote vote) {
+        return message.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName());
     }
 
     @Override
     public void sendAsReminder(Player player) {
+        player.sendMessage(getAsReminder(player));
+    }
+
+    protected String getAsReminder(Player player) {
         int votes = SuperbVote.getPlugin().getVoteStorage().getVotes(player.getUniqueId());
-        player.sendMessage(message.replaceAll("%player%", player.getName()).replaceAll("%votes%", Integer.toString(votes)));
+        return message.replaceAll("%player%", player.getName()).replaceAll("%votes%", Integer.toString(votes));
     }
 }
