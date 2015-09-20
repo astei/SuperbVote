@@ -2,7 +2,10 @@ package io.minimum.minecraft.superbvote.configuration;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
 import io.minimum.minecraft.superbvote.uuid.UuidCache;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
@@ -25,7 +28,7 @@ public class SuperbVoteConfiguration {
     @Getter
     private final List<VoteReward> rewards;
 
-    private static final List<String> SUPPORTED_STORAGE = ImmutableList.of("json");
+    private static final List<String> SUPPORTED_STORAGE = ImmutableList.of("json", "mysql");
 
     public SuperbVoteConfiguration(ConfigurationSection section) {
         this.configuration = section;
@@ -93,7 +96,6 @@ public class SuperbVoteConfiguration {
         return configuration.getBoolean("require-online", false);
     }
 
-
     public static String replacePlaceholders(String text, Vote vote) {
         return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName());
     }
@@ -122,6 +124,24 @@ public class SuperbVoteConfiguration {
                     SuperbVote.getPlugin().getLogger().info("No file found in configuration, using 'votes.json'.");
                 }
                 return new JsonVoteStorage(new File(SuperbVote.getPlugin().getDataFolder(), file));
+            case "mysql":
+                String host = configuration.getString("storage.mysql.host", "localhost");
+                int port = configuration.getInt("storage.mysql.port", 3306);
+                String username = configuration.getString("storage.mysql.username", "root");
+                String password = configuration.getString("storage.mysql.password", "");
+                String database = configuration.getString("storage.mysql.database", "superbvote");
+                String table = configuration.getString("storage.mysql.table", "superbvote");
+                boolean readOnly = configuration.getBoolean("storage.mysql.read-only");
+
+                HikariConfig config = new HikariConfig();
+                config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database);
+                config.setUsername(username);
+                config.setPassword(password);
+                config.setMaximumPoolSize(4);
+                HikariPool pool = new HikariPool(config);
+                MysqlVoteStorage mysqlVoteStorage = new MysqlVoteStorage(pool, table, readOnly);
+                mysqlVoteStorage.initialize();
+                return mysqlVoteStorage;
         }
 
         return null;

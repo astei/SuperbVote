@@ -9,6 +9,13 @@ storage:
   database: json
   json:
     file: votes.json
+  mysql:
+    host: 127.0.0.1
+    username: root
+    password: topsecret
+    database: superbvote
+    table: votes
+    read-only: false
 
 # General vote configuration.
 votes:

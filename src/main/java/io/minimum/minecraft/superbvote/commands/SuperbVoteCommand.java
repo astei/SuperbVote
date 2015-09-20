@@ -117,10 +117,10 @@ public class SuperbVoteCommand implements CommandExecutor {
                     default:
                         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
                             int c = SuperbVote.getPlugin().getConfig().getInt("leaderboard.text.per-page", 10);
-                            int from = c * (page + 1);
+                            int from = c * page;
                             List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(c, page);
                             List<String> leaderboard = leaderboardAsUuids.stream()
-                                    .map(leaderboardAsUuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(leaderboardAsUuid))
+                                    .map(uuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid))
                                     .collect(Collectors.toList());
                             if (leaderboardAsUuids.isEmpty()) {
                                 sender.sendMessage(ChatColor.RED + "No entries found.");

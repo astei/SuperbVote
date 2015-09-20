@@ -31,7 +31,7 @@ public class ScoreboardHandler implements Runnable {
         List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(
                 Math.min(16, SuperbVote.getPlugin().getConfig().getInt("leaderboard.scoreboard.max", 10)), 0);
         List<String> leaderboard = leaderboardAsUuids.stream()
-                .map(leaderboardAsUuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(leaderboardAsUuid))
+                .map(uuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid))
                 .collect(Collectors.toList());
         if (leaderboard.isEmpty()) {
             scoreboard.getEntries().stream().filter(s -> !s.equals("None found")).forEach(scoreboard::resetScores);

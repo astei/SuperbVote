@@ -1,0 +1,160 @@
+package io.minimum.minecraft.superbvote.storage;
+
+import com.google.common.base.Preconditions;
+import com.zaxxer.hikari.pool.HikariPool;
+import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.votes.Vote;
+import lombok.RequiredArgsConstructor;
+
+import java.sql.*;
+import java.time.LocalTime;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
+
+@RequiredArgsConstructor
+public class MysqlVoteStorage implements VoteStorage {
+    private final ConcurrentMap<UUID, Map<String, LocalTime>> cooldowns = new ConcurrentHashMap<>(32, 0.75f, 2);
+    private final HikariPool dbPool;
+    private final String tableName;
+    private final boolean readOnly;
+
+    public void initialize() {
+        try (Connection connection = dbPool.getConnection()) {
+            try (ResultSet t = connection.getMetaData().getTables("", "", tableName, null)) {
+                if (!t.next()) {
+                    try (Statement statement = connection.createStatement()) {
+                        statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, votes INT)");
+                        // This may speed up leaderboards
+                        statement.executeUpdate("CREATE INDEX uuid_votes_idx ON " + tableName + " (uuid, votes)");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to initialize database", e);
+        }
+    }
+
+    @Override
+    public boolean issueVote(Vote vote) {
+        if (readOnly)
+            return false;
+
+        Map<String, LocalTime> lastVoteMap = cooldowns.computeIfAbsent(vote.getUuid(), (ignored) -> new ConcurrentHashMap<>(8, 0.75f, 2));
+        LocalTime lastTime = lastVoteMap.get(vote.getServiceName());
+        if (lastTime == null || lastTime.isBefore(LocalTime.now().minusSeconds(
+                SuperbVote.getPlugin().getConfig().getInt("votes.cooldown-per-service", 3600)))) {
+            lastVoteMap.put(vote.getServiceName(), LocalTime.now());
+            addVote(vote.getUuid());
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void addVote(UUID player) {
+        if (readOnly)
+            return;
+
+        Preconditions.checkNotNull(player, "player");
+        try (Connection connection = dbPool.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " VALUES (?, 1)" +
+                    " ON DUPLICATE KEY UPDATE votes = votes + 1")) {
+                statement.setString(1, player.toString());
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to add vote for " + player.toString(), e);
+        }
+    }
+
+    @Override
+    public void setVotes(UUID player, int votes) {
+        if (readOnly)
+            return;
+
+        Preconditions.checkNotNull(player, "player");
+        try (Connection connection = dbPool.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " VALUES (?, ?)" +
+                    " ON DUPLICATE KEY UPDATE votes = ?")) {
+                statement.setString(1, player.toString());
+                statement.setInt(2, votes);
+                statement.setInt(3, votes);
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to set votes for " + player.toString(), e);
+        }
+    }
+
+    @Override
+    public void clearVotes() {
+        if (readOnly)
+            return;
+
+        try (Connection connection = dbPool.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement("TRUNCATE TABLE " + tableName)) {
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to clear votes", e);
+        }
+    }
+
+    @Override
+    public int getVotes(UUID player) {
+        Preconditions.checkNotNull(player, "player");
+        try (Connection connection = dbPool.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT votes FROM " + tableName + " WHERE uuid = ?")) {
+                statement.setString(1, player.toString());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    return resultSet.next() ? resultSet.getInt(1) : 0;
+                }
+            }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get votes for " + player.toString(), e);
+            return 0;
+        }
+    }
+
+    @Override
+    public List<UUID> getTopVoters(int amount, int page) {
+        int offset = page * amount;
+        try (Connection connection = dbPool.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid FROM " + tableName + " ORDER BY votes DESC " +
+                    "LIMIT " + amount + " OFFSET " + offset)) {
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    List<UUID> uuids = new ArrayList<>();
+                    while (resultSet.next()) {
+                        uuids.add(UUID.fromString(resultSet.getString(1)));
+                    }
+                    return uuids;
+                }
+            }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get top votes", e);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public int getPagesAvailable(int amount) {
+        try (Connection connection = dbPool.getConnection()) {
+            // Ugly SQL, but who cares
+            try (PreparedStatement statement = connection.prepareStatement("SELECT CEIL(COUNT(uuid) / " + amount + ") FROM votes")) {
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    return resultSet.next() ? resultSet.getInt(1) : 0;
+                }
+            }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get top votes page count", e);
+            return 0;
+        }
+    }
+
+    @Override
+    public void save() {
+        // No-op
+    }
+}

@@ -23,7 +23,7 @@ public class SuperbVote extends JavaPlugin {
     @Getter
     private VoteStorage voteStorage;
     @Getter
-    private UuidCache uuidCache;
+    private UuidCache uuidCache = new UuidCache();
     @Getter
     private QueuedVotesStorage queuedVotes;
     @Getter
