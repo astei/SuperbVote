@@ -75,5 +75,6 @@ public class SuperbVote extends JavaPlugin {
     public void reloadConfig() {
         super.reloadConfig();
         configuration = new SuperbVoteConfiguration(getConfig());
+        scoreboardHandler.reload();
     }
 }

@@ -18,16 +18,22 @@ public class ScoreboardHandler implements Runnable {
 
     public ScoreboardHandler() {
         scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        objective = scoreboard.registerNewObjective(
-                ChatColor.translateAlternateColorCodes('&',
-                        SuperbVote.getPlugin().getConfig().getString("leaderboard.scoreboard.title", "Top voters")),
-                "dummy");
+        objective = scoreboard.registerNewObjective("", "dummy");
+        reload();
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         objective.getScore("None found").setScore(1);
     }
 
+    public void reload() {
+        objective.setDisplayName(ChatColor.translateAlternateColorCodes('&',
+                SuperbVote.getPlugin().getConfig().getString("leaderboard.scoreboard.title", "Top voters")));
+    }
+
     @Override
     public void run() {
+        if (!SuperbVote.getPlugin().getConfig().getString("leaderboard.display").equals("scoreboard")) {
+            return;
+        }
         List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(
                 Math.min(16, SuperbVote.getPlugin().getConfig().getInt("leaderboard.scoreboard.max", 10)), 0);
         List<String> leaderboard = leaderboardAsUuids.stream()
