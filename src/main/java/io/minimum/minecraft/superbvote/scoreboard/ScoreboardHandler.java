@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class ScoreboardHandler implements Runnable {
+public class ScoreboardHandler {
     private final Scoreboard scoreboard;
     private final Objective objective;
 
@@ -29,8 +29,7 @@ public class ScoreboardHandler implements Runnable {
                 SuperbVote.getPlugin().getConfig().getString("leaderboard.scoreboard.title", "Top voters")));
     }
 
-    @Override
-    public void run() {
+    public void doPopulate() {
         if (!SuperbVote.getPlugin().getConfig().getString("leaderboard.display").equals("scoreboard")) {
             return;
         }

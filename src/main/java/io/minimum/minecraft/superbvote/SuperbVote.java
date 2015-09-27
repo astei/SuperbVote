@@ -10,6 +10,7 @@ import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.uuid.UuidCache;
 import io.minimum.minecraft.superbvote.votes.VoteReminder;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -54,7 +55,7 @@ public class SuperbVote extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SuperbVoteHandler(), this);
         getServer().getScheduler().runTaskTimerAsynchronously(this, voteStorage::save, 20, 20 * 30);
         getServer().getScheduler().runTaskTimerAsynchronously(this, queuedVotes::save, 20, 20 * 30);
-        getServer().getScheduler().runTaskTimerAsynchronously(this, scoreboardHandler, 20, 20 * 3);
+        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
 
         int r = getConfig().getInt("vote-reminder.repeat");
         String text = SuperbVote.getPlugin().getConfig().getString("vote-reminder.message");
@@ -76,5 +77,6 @@ public class SuperbVote extends JavaPlugin {
         super.reloadConfig();
         configuration = new SuperbVoteConfiguration(getConfig());
         scoreboardHandler.reload();
+        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
     }
 }

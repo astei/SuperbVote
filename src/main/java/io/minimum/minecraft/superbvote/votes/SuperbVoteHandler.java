@@ -1,5 +1,7 @@
 package io.minimum.minecraft.superbvote.votes;
 
+import io.minimum.minecraft.superbvote.SuperbVote;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -11,5 +13,7 @@ public class SuperbVoteHandler implements Listener {
             throw new RuntimeException("No vote reward found for '" + event.getVote() + "'");
         }
         event.getVoteReward().runCommands(event.getVote());
+
+        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
     }
 }
