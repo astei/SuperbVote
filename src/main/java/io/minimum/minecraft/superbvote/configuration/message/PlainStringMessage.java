@@ -1,7 +1,6 @@
 package io.minimum.minecraft.superbvote.configuration.message;
 
 import com.google.common.collect.ImmutableList;
-import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.configuration.message.placeholder.ClipsPlaceholderProvider;
 import io.minimum.minecraft.superbvote.configuration.message.placeholder.PlaceholderProvider;
 import io.minimum.minecraft.superbvote.configuration.message.placeholder.SuperbVotePlaceholderProvider;
@@ -11,9 +10,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class PlainStringMessage implements VoteMessage {
     private static final List<PlaceholderProvider> PROVIDER_LIST = ImmutableList.of(new SuperbVotePlaceholderProvider(),

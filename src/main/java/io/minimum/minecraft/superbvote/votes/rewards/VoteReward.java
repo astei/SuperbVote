@@ -2,11 +2,10 @@ package io.minimum.minecraft.superbvote.votes.rewards;
 
 import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
-import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
 import io.minimum.minecraft.superbvote.votes.Vote;
+import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
 import lombok.Data;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.List;

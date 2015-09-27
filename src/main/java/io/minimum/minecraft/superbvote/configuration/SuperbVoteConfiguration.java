@@ -7,22 +7,21 @@ import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessages;
+import io.minimum.minecraft.superbvote.storage.JsonVoteStorage;
 import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
-import io.minimum.minecraft.superbvote.uuid.UuidCache;
+import io.minimum.minecraft.superbvote.storage.VoteStorage;
+import io.minimum.minecraft.superbvote.votes.Vote;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatchers;
-import io.minimum.minecraft.superbvote.storage.JsonVoteStorage;
-import io.minimum.minecraft.superbvote.storage.VoteStorage;
-import io.minimum.minecraft.superbvote.votes.Vote;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SuperbVoteConfiguration {

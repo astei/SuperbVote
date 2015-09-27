@@ -5,6 +5,8 @@ import org.bukkit.entity.Player;
 
 public interface PlaceholderProvider {
     String applyForBroadcast(Player voted, String message, Vote vote);
+
     String applyForReminder(Player player, String message);
+
     boolean canUse();
 }

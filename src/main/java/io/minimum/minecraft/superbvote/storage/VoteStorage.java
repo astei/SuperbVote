@@ -7,11 +7,18 @@ import java.util.UUID;
 
 public interface VoteStorage {
     boolean issueVote(Vote vote);
+
     void addVote(UUID player);
+
     void setVotes(UUID player, int votes);
+
     void clearVotes();
+
     int getVotes(UUID player);
+
     List<UUID> getTopVoters(int amount, int page);
+
     int getPagesAvailable(int amount);
+
     void save();
 }
