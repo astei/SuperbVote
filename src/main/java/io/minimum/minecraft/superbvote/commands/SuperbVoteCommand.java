@@ -229,7 +229,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                     sender.sendMessage(ChatColor.RED + "You can't do this.");
                     return true;
                 }
-                SuperbVote.getPlugin().reloadConfig();
+                SuperbVote.getPlugin().reloadPlugin();
                 sender.sendMessage(ChatColor.GREEN + "Plugin configuration reloaded.");
                 return true;
             case "clear":

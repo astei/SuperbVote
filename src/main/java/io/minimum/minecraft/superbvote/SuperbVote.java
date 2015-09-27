@@ -64,6 +64,10 @@ public class SuperbVote extends JavaPlugin {
                 getServer().getScheduler().runTaskTimerAsynchronously(this, new VoteReminder(), 20 * r, 20 * r);
             }
         }
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            getLogger().info("Using clip's PlaceholderAPI to provide extra placeholders.");
+        }
     }
 
     @Override
@@ -72,9 +76,8 @@ public class SuperbVote extends JavaPlugin {
         queuedVotes.save();
     }
 
-    @Override
-    public void reloadConfig() {
-        super.reloadConfig();
+    public void reloadPlugin() {
+        reloadConfig();
         configuration = new SuperbVoteConfiguration(getConfig());
         scoreboardHandler.reload();
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);

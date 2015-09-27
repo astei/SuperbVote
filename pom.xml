@@ -55,6 +55,16 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+        <repository>
+            <id>codecrafter47-repo</id>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <url>http://nexus.codecrafter47.dyndns.eu/content/repositories/public/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -93,6 +103,12 @@
             <artifactId>HikariCP</artifactId>
             <version>2.4.0</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.clip.placeholderapi</groupId>
+            <artifactId>PlaceholderAPI</artifactId>
+            <version>1.8.5</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
