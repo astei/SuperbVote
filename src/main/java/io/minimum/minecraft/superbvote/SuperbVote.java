@@ -5,6 +5,7 @@ import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
 import io.minimum.minecraft.superbvote.scoreboard.ScoreboardHandler;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
+import io.minimum.minecraft.superbvote.util.VoteCooldownHandler;
 import io.minimum.minecraft.superbvote.uuid.UuidCache;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteHandler;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
@@ -29,6 +30,8 @@ public class SuperbVote extends JavaPlugin {
     private QueuedVotesStorage queuedVotes;
     @Getter
     private ScoreboardHandler scoreboardHandler;
+    @Getter
+    private final VoteCooldownHandler cooldownHandler = new VoteCooldownHandler();
 
     @Override
     public void onEnable() {

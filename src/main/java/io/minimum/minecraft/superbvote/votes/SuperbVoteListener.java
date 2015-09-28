@@ -60,11 +60,12 @@ public class SuperbVoteListener implements Listener {
 
                 preVoteEvent.getVoteReward().broadcastVote(vote, !queued, broadcast && !queued);
 
-                if (SuperbVote.getPlugin().getVoteStorage().issueVote(vote)) {
-                    Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote, preVoteEvent.getVoteReward())));
-                } else {
+                if (SuperbVote.getPlugin().getCooldownHandler().triggerCooldown(vote)) {
                     SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
                             vote.getServiceName() + ") due to service cooldown.");
+                } else {
+                    SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
+                    Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote, preVoteEvent.getVoteReward())));
                 }
                 break;
             case QUEUE_VOTE:

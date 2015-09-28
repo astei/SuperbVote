@@ -38,18 +38,8 @@ public class MysqlVoteStorage implements VoteStorage {
     }
 
     @Override
-    public boolean issueVote(Vote vote) {
-        Map<String, LocalTime> lastVoteMap = cooldowns.computeIfAbsent(vote.getUuid(), (ignored) -> new ConcurrentHashMap<>(8, 0.75f, 2));
-        LocalTime lastTime = lastVoteMap.get(vote.getServiceName());
-        if (lastTime == null || lastTime.isBefore(LocalTime.now().minusSeconds(
-                SuperbVote.getPlugin().getConfig().getInt("votes.cooldown-per-service", 3600)))) {
-            lastVoteMap.put(vote.getServiceName(), LocalTime.now());
-            if (readOnly)
-                return true;
-            addVote(vote.getUuid(), vote.getName());
-            return true;
-        }
-        return false;
+    public void issueVote(Vote vote) {
+        addVote(vote.getUuid(), vote.getName());
     }
 
     @Override

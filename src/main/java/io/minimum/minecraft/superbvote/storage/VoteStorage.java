@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface VoteStorage {
-    boolean issueVote(Vote vote);
+    void issueVote(Vote vote);
 
     void addVote(UUID player);
 
