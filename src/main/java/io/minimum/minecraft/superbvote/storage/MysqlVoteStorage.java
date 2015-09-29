@@ -23,7 +23,7 @@ public class MysqlVoteStorage implements VoteStorage {
 
     public void initialize() {
         try (Connection connection = dbPool.getConnection()) {
-            try (ResultSet t = connection.getMetaData().getTables("", "", tableName, null)) {
+            try (ResultSet t = connection.getMetaData().getTables(null, null, tableName, null)) {
                 if (!t.next()) {
                     try (Statement statement = connection.createStatement()) {
                         statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT)");
