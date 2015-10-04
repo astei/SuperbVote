@@ -52,6 +52,12 @@ broadcast:
   # Should we broadcast queued votes?
   queued: true
 
+# Vote command.
+vote-command:
+  enabled: false
+  text: |-
+  You could vote for us, but the owner forgot to add the list of websites to vote at!
+
 # Vote reminder.
 vote-reminder:
   message: "&cDon't forget to vote for us! You currently have &a%votes%&c votes."

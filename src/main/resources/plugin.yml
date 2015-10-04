@@ -8,3 +8,5 @@ commands:
   superbvote:
     description: SuperbVote main command.
     aliases: [sv]
+  vote:
+    description: SuperbVote vote command.

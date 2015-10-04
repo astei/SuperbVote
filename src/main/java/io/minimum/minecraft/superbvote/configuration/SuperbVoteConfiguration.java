@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.commands.VoteCommand;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessages;
 import io.minimum.minecraft.superbvote.storage.JsonVoteStorage;
@@ -30,6 +31,8 @@ public class SuperbVoteConfiguration {
     private final List<VoteReward> rewards;
     @Getter
     private final VoteMessage reminderMessage;
+    @Getter
+    private final VoteCommand voteCommand;
 
     private static final List<String> SUPPORTED_STORAGE = ImmutableList.of("json", "mysql");
 
@@ -58,6 +61,12 @@ public class SuperbVoteConfiguration {
         }
 
         reminderMessage = VoteMessages.from(configuration, "vote-reminder.message");
+
+        if (configuration.getBoolean("vote-command.enabled")) {
+            voteCommand = new VoteCommand(VoteMessages.from(configuration, "vote-command.text"));
+        } else {
+            voteCommand = null;
+        }
     }
 
     private VoteReward deserializeReward(ConfigurationSection section) {
