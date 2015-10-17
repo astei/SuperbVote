@@ -7,6 +7,7 @@ import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.io.*;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -72,7 +73,7 @@ public class JsonVoteStorage implements VoteStorage {
         return voteCounts.entrySet().stream()
                 .skip(skip)
                 .limit(amount)
-                .sorted((entry, entry2) -> entry.getValue().compareTo(entry2.getValue()))
+                .sorted(Collections.reverseOrder((entry, entry2) -> entry.getValue().compareTo(entry2.getValue())))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
     }
