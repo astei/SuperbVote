@@ -1,5 +1,6 @@
 package io.minimum.minecraft.superbvote.votes.rewards.matchers;
 
+import com.google.common.collect.ImmutableList;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -27,10 +28,14 @@ public class RewardMatchers {
             matchers.add(new ChanceRewardMatcher((int) chanceObject));
         }
 
-        // service: <service>
+        // service: <service> or services: <services>
         String service = section.getString("service", null);
         if (service != null) {
-            matchers.add(new ServiceRewardMatcher(service));
+            matchers.add(new ServiceRewardMatcher(ImmutableList.of(service)));
+        }
+        List<String> services = section.getStringList("services");
+        if (service == null && services != null && !services.isEmpty()) {
+            matchers.add(new ServiceRewardMatcher(services));
         }
 
         // cumulative-votes: <votes>
