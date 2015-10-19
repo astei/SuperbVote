@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -33,14 +34,8 @@ public class QueuedVotesStorage {
 
     public void addVote(Vote vote) {
         Preconditions.checkNotNull(vote, "votes");
-        voteCounts.compute(vote.getUuid(), (key, votes) -> {
-            if (votes == null) {
-                return Lists.newArrayList(vote);
-            } else {
-                votes.add(vote);
-                return votes;
-            }
-        });
+        List<Vote> votes = voteCounts.computeIfAbsent(vote.getUuid(), (ignored) -> new ArrayList<>());
+        votes.add(vote);
     }
 
     public void clearVotes() {

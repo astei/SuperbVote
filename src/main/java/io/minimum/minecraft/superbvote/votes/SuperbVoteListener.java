@@ -87,8 +87,11 @@ public class SuperbVoteListener implements Listener {
                 ((MysqlVoteStorage) SuperbVote.getPlugin().getVoteStorage()).updateName(event.getPlayer());
             }
 
+            // Process queued votes.
             List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
             votes.forEach(v -> processVote(v, false, false, true));
+
+            // Remind players to vote.
             if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join")) {
                 SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer());
             }

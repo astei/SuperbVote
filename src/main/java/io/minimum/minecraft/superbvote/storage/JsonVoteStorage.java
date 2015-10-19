@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 public class JsonVoteStorage implements VoteStorage {
     private final ConcurrentMap<UUID, Integer> voteCounts = new ConcurrentHashMap<>(32, 0.75f, 2);
-    private final ConcurrentMap<UUID, Map<String, LocalTime>> cooldowns = new ConcurrentHashMap<>(32, 0.75f, 2);
     private final Gson gson = new Gson();
     private final File saveTo;
 
