@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.commands.VoteCommand;
+import io.minimum.minecraft.superbvote.configuration.message.OfflineVoteMessages;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessages;
 import io.minimum.minecraft.superbvote.storage.JsonVoteStorage;
@@ -33,6 +34,8 @@ public class SuperbVoteConfiguration {
     private final VoteMessage reminderMessage;
     @Getter
     private final VoteCommand voteCommand;
+    @Getter
+    private final TextLeaderboardConfiguration textLeaderboardConfiguration;
 
     private static final List<String> SUPPORTED_STORAGE = ImmutableList.of("json", "mysql");
 
@@ -67,6 +70,12 @@ public class SuperbVoteConfiguration {
         } else {
             voteCommand = null;
         }
+
+        textLeaderboardConfiguration = new TextLeaderboardConfiguration(
+                configuration.getInt("leaderboard.text.per-page", 10),
+                OfflineVoteMessages.from(configuration.getConfigurationSection("leaderboard.text"), "header"),
+                OfflineVoteMessages.from(configuration.getConfigurationSection("leaderboard.text"), "entry")
+        );
     }
 
     private VoteReward deserializeReward(ConfigurationSection section) {

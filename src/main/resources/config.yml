@@ -72,6 +72,8 @@ leaderboard:
   # The text format supports pagination.
   text:
     per-page: 10
+    header: "&c&m         &r&bTop Voters&r&c&m         &r"
+    entry: "&e{num}. &7{player} (&e{votes}&7 votes)"
 
   # Control the scoreboard.
   scoreboard:

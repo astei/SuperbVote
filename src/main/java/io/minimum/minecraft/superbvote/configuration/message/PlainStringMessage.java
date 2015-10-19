@@ -7,11 +7,13 @@ import io.minimum.minecraft.superbvote.configuration.message.placeholder.SuperbV
 import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.UUID;
 
-public class PlainStringMessage implements VoteMessage {
+public class PlainStringMessage implements VoteMessage, OfflineVoteMessage {
     private static final List<PlaceholderProvider> PROVIDER_LIST = ImmutableList.of(new SuperbVotePlaceholderProvider(),
             new ClipsPlaceholderProvider());
 
@@ -47,6 +49,22 @@ public class PlainStringMessage implements VoteMessage {
         for (PlaceholderProvider provider : PROVIDER_LIST) {
             if (provider.canUse()) {
                 replaced = provider.applyForReminder(player, replaced);
+            }
+        }
+        return replaced;
+    }
+
+    @Override
+    public void sendWithNothing(CommandSender to) {
+        to.sendMessage(message);
+    }
+
+    @Override
+    public String getWithOfflinePlayer(CommandSender to, UUID referred) {
+        String replaced = message;
+        for (PlaceholderProvider provider : PROVIDER_LIST) {
+            if (provider.canUse() && provider.canUseForOfflinePlayers()) {
+                replaced = provider.applyForReminder(referred, replaced);
             }
         }
         return replaced;

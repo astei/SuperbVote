@@ -116,23 +116,20 @@ public class SuperbVoteCommand implements CommandExecutor {
                     case "text":
                     default:
                         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
-                            int c = SuperbVote.getPlugin().getConfig().getInt("leaderboard.text.per-page", 10);
+                            int c = SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration().getPerPage();
                             int from = c * page;
                             List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(c, page);
-                            List<String> leaderboard = leaderboardAsUuids.stream()
-                                    .map(uuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid))
-                                    .collect(Collectors.toList());
                             if (leaderboardAsUuids.isEmpty()) {
                                 sender.sendMessage(ChatColor.RED + "No entries found.");
                                 return;
                             }
-                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.STRIKETHROUGH + "      " +
-                                    ChatColor.GRAY + " Top Players " +
-                                    ChatColor.RED.toString() + ChatColor.STRIKETHROUGH + "      ");
-                            for (int i = 0; i < leaderboard.size(); i++) {
-                                sender.sendMessage(ChatColor.GRAY + Integer.toString(from + i + 1) + ". " + ChatColor.YELLOW + leaderboard.get(i));
+                            SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration().getHeader().sendWithNothing(sender);
+                            for (int i = 0; i < leaderboardAsUuids.size(); i++) {
+                                String posStr = Integer.toString(from + i + 1);
+                                sender.sendMessage(SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration().getEntryText().getWithOfflinePlayer(sender, leaderboardAsUuids.get(i))
+                                        .replaceAll("%num%", posStr));
                             }
-                            int availablePages = SuperbVote.getPlugin().getVoteStorage().getPagesAvailable(10);
+                            int availablePages = SuperbVote.getPlugin().getVoteStorage().getPagesAvailable(c);
                             sender.sendMessage(ChatColor.GRAY + "(page " + (page + 1) + "/" + availablePages + ")");
                         });
                         break;
