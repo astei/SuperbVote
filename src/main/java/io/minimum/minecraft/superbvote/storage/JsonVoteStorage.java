@@ -79,7 +79,8 @@ public class JsonVoteStorage implements VoteStorage {
 
     @Override
     public int getPagesAvailable(int amount) {
-        return (int) Math.ceil(voteCounts.size() / amount);
+        if (voteCounts.isEmpty()) return 0;
+        return Math.max(1, (int) Math.ceil(voteCounts.size() / amount));
     }
 
     @Override

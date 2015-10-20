@@ -103,8 +103,13 @@ public class SuperbVoteCommand implements CommandExecutor {
                 }
                 int page;
                 try {
-                    page = args.length == 2 ? Integer.parseInt(args[1]) : 0;
+                    page = args.length == 2 ? Integer.parseInt(args[1]) - 1 : 0;
                 } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "Page number is not valid.");
+                    return true;
+                }
+
+                if (page < 0) {
                     sender.sendMessage(ChatColor.RED + "Page number is not valid.");
                     return true;
                 }

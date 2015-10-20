@@ -37,6 +37,12 @@ public class SuperbVoteListener implements Listener {
 
             Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(), new Date());
 
+            if (SuperbVote.getPlugin().getCooldownHandler().triggerCooldown(vote)) {
+                SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
+                        vote.getServiceName() + ") due to service cooldown.");
+                return;
+            }
+
             processVote(vote, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.enabled"),
                     onlinePlayer == null && SuperbVote.getPlugin().getConfiguration().requirePlayersOnline(),
                     false);
@@ -60,13 +66,8 @@ public class SuperbVoteListener implements Listener {
 
                 preVoteEvent.getVoteReward().broadcastVote(vote, !queued, broadcast && !queued);
 
-                if (SuperbVote.getPlugin().getCooldownHandler().triggerCooldown(vote)) {
-                    SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
-                            vote.getServiceName() + ") due to service cooldown.");
-                } else {
-                    SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
-                    Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote, preVoteEvent.getVoteReward())));
-                }
+                SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
+                Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote, preVoteEvent.getVoteReward())));
                 break;
             case QUEUE_VOTE:
                 SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Queuing vote from " + vote.getName() + " to be run later");

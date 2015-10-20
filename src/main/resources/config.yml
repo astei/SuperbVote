@@ -56,7 +56,7 @@ broadcast:
 vote-command:
   enabled: false
   text: |-
-  You could vote for us, but the owner forgot to add the list of websites to vote at!
+    You could vote for us, but the owner forgot to add the list of websites to vote at!
 
 # Vote reminder.
 vote-reminder:
@@ -72,8 +72,8 @@ leaderboard:
   # The text format supports pagination.
   text:
     per-page: 10
-    header: "&c&m         &r&bTop Voters&r&c&m         &r"
-    entry: "&e{num}. &7{player} (&e{votes}&7 votes)"
+    header: "&c&m         &r&b Top Voters &r&c&m         &r"
+    entry: "&e%num%. &7%player% (&e%votes%&7 votes)"
 
   # Control the scoreboard.
   scoreboard:

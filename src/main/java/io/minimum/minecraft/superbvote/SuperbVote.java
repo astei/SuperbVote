@@ -54,9 +54,7 @@ public class SuperbVote extends JavaPlugin {
         scoreboardHandler = new ScoreboardHandler();
 
         getCommand("superbvote").setExecutor(new SuperbVoteCommand());
-        if (configuration.getVoteCommand() != null) {
-            getCommand("vote").setExecutor(configuration.getVoteCommand());
-        }
+        getCommand("vote").setExecutor(configuration.getVoteCommand());
 
         getServer().getPluginManager().registerEvents(new SuperbVoteListener(), this);
         getServer().getPluginManager().registerEvents(new SuperbVoteHandler(), this);
@@ -88,8 +86,6 @@ public class SuperbVote extends JavaPlugin {
         configuration = new SuperbVoteConfiguration(getConfig());
         scoreboardHandler.reload();
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
-        if (configuration.getVoteCommand() != null) {
-            getCommand("vote").setExecutor(configuration.getVoteCommand());
-        }
+        getCommand("vote").setExecutor(configuration.getVoteCommand());
     }
 }
