@@ -16,7 +16,6 @@ import java.util.logging.Level;
 
 @RequiredArgsConstructor
 public class MysqlVoteStorage implements VoteStorage {
-    private final ConcurrentMap<UUID, Map<String, LocalTime>> cooldowns = new ConcurrentHashMap<>(32, 0.75f, 2);
     private final HikariPool dbPool;
     private final String tableName;
     private final boolean readOnly;
