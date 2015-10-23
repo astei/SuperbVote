@@ -151,7 +151,8 @@ public class SuperbVoteConfiguration {
                 config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database);
                 config.setUsername(username);
                 config.setPassword(password);
-                config.setMaximumPoolSize(4);
+                config.setMinimumIdle(2);
+                config.setMaximumPoolSize(6);
                 HikariPool pool = new HikariPool(config);
                 MysqlVoteStorage mysqlVoteStorage = new MysqlVoteStorage(pool, table, readOnly);
                 mysqlVoteStorage.initialize();
