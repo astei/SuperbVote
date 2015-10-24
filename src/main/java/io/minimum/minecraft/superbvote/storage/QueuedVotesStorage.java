@@ -2,17 +2,16 @@ package io.minimum.minecraft.superbvote.storage;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class QueuedVotesStorage {
     private final Map<UUID, List<Vote>> voteCounts = new ConcurrentHashMap<>(32, 0.75f, 2);
@@ -28,13 +27,17 @@ public class QueuedVotesStorage {
         try (Reader reader = new BufferedReader(new FileReader(file))) {
             Map<UUID, List<Vote>> votes = gson.fromJson(reader, new TypeToken<Map<UUID, List<Vote>>>() {
             }.getType());
-            if (votes != null) voteCounts.putAll(votes);
+            if (votes != null) {
+                for (Map.Entry<UUID, List<Vote>> entry : votes.entrySet()) {
+                    voteCounts.put(entry.getKey(), new CopyOnWriteArrayList<>(entry.getValue()));
+                }
+            }
         }
     }
 
     public void addVote(Vote vote) {
         Preconditions.checkNotNull(vote, "votes");
-        List<Vote> votes = voteCounts.computeIfAbsent(vote.getUuid(), (ignored) -> new ArrayList<>());
+        List<Vote> votes = voteCounts.computeIfAbsent(vote.getUuid(), (ignored) -> new CopyOnWriteArrayList<>());
         votes.add(vote);
     }
 
