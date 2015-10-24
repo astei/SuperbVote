@@ -9,11 +9,10 @@ import org.bukkit.event.Listener;
 public class SuperbVoteHandler implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onSuperbVote(SuperbVoteEvent event) {
-        if (event.getVoteReward() == null) {
+        if (event.getVoteRewards().isEmpty()) {
             throw new RuntimeException("No vote reward found for '" + event.getVote() + "'");
         }
-        event.getVoteReward().runCommands(event.getVote());
-
+        event.getVoteRewards().forEach(reward -> reward.runCommands(event.getVote()));
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
     }
 }

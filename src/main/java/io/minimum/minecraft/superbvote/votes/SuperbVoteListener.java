@@ -50,9 +50,8 @@ public class SuperbVoteListener implements Listener {
     }
 
     private void processVote(Vote vote, boolean broadcast, boolean queue, boolean queued) {
-        VoteReward bestReward = SuperbVote.getPlugin().getConfiguration().getBestReward(vote);
-        SuperbPreVoteEvent preVoteEvent = new SuperbPreVoteEvent(vote);
-        preVoteEvent.setVoteReward(bestReward);
+        List<VoteReward> bestRewards = SuperbVote.getPlugin().getConfiguration().getBestRewards(vote);
+        SuperbPreVoteEvent preVoteEvent = new SuperbPreVoteEvent(vote, bestRewards);
         if (queue) {
             preVoteEvent.setResult(SuperbPreVoteEvent.Result.QUEUE_VOTE);
         }
@@ -60,18 +59,23 @@ public class SuperbVoteListener implements Listener {
 
         switch (preVoteEvent.getResult()) {
             case PROCESS_VOTE:
-                if (preVoteEvent.getVoteReward() == null) {
+                if (preVoteEvent.getVoteRewards().isEmpty()) {
                     throw new RuntimeException("No vote reward found for '" + vote + "'");
                 }
 
-                preVoteEvent.getVoteReward().broadcastVote(vote, !queued, broadcast && !queued);
-
                 SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
-                Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote, preVoteEvent.getVoteReward())));
+
+                for (VoteReward reward : preVoteEvent.getVoteRewards()) {
+                    reward.broadcastVote(vote, !queued, broadcast && !queued);
+                }
+
+                Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote, preVoteEvent.getVoteRewards())));
                 break;
             case QUEUE_VOTE:
                 SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Queuing vote from " + vote.getName() + " to be run later");
-                preVoteEvent.getVoteReward().broadcastVote(vote, false, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued"));
+                for (VoteReward reward : preVoteEvent.getVoteRewards()) {
+                    reward.broadcastVote(vote, false, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued"));
+                }
                 SuperbVote.getPlugin().getQueuedVotes().addVote(vote);
                 break;
             case CANCEL:

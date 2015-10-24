@@ -6,6 +6,8 @@ import lombok.Setter;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import java.util.List;
+
 public class SuperbPreVoteEvent extends Event {
     @Getter
     private static final HandlerList handlerList = new HandlerList();
@@ -13,14 +15,14 @@ public class SuperbPreVoteEvent extends Event {
     @Setter
     private Result result = Result.PROCESS_VOTE;
     @Getter
-    @Setter
-    private VoteReward voteReward;
+    private List<VoteReward> voteRewards;
     @Getter
     private final Vote vote;
 
-    public SuperbPreVoteEvent(Vote vote) {
+    public SuperbPreVoteEvent(Vote vote, List<VoteReward> rewardList) {
         super(true);
         this.vote = vote;
+        this.voteRewards = rewardList;
     }
 
     @Override

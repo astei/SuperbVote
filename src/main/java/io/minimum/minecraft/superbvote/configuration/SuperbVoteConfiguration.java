@@ -14,6 +14,7 @@ import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
+import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChanceRewardMatcher;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatchers;
 import lombok.Getter;
@@ -22,6 +23,7 @@ import org.bukkit.configuration.MemoryConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -96,23 +98,41 @@ public class SuperbVoteConfiguration {
         }
 
         List<RewardMatcher> rewards = RewardMatchers.getMatchers(section.getConfigurationSection("if"));
+        boolean cascade = section.getBoolean("allow-cascade");
 
-        return new VoteReward(name, rewards, commands, playerMessage, broadcast);
+        return new VoteReward(name, rewards, commands, playerMessage, broadcast, cascade);
     }
 
-    public VoteReward getBestReward(Vote vote) {
+    public List<VoteReward> getBestRewards(Vote vote) {
+        List<VoteReward> best = new ArrayList<>();
+        // We only allow random chances to match just once when cascading, the player should not get another chance
+        // to "win".
+        boolean chanceMatched = false;
         for (VoteReward reward : rewards) {
-            boolean use = true;
+            boolean allAgree = true;
             for (RewardMatcher matcher : reward.getRewardMatchers()) {
+                // Break early if we've matched a chance award.
+                if (chanceMatched && matcher instanceof ChanceRewardMatcher) {
+                    allAgree = false;
+                    break;
+                }
                 if (!matcher.matches(vote)) {
-                    use = false;
+                    allAgree = false;
                     break;
                 }
             }
-            if (use) return reward;
+            if (allAgree) {
+                best.add(reward);
+                if (!reward.isCascade())
+                    return best;
+                for (RewardMatcher matcher : reward.getRewardMatchers()) {
+                    if (matcher instanceof ChanceRewardMatcher)
+                        chanceMatched = true;
+                }
+            }
         }
 
-        return null;
+        return best;
     }
 
     public boolean requirePlayersOnline() {

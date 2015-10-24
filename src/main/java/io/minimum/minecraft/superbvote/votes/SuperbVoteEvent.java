@@ -5,18 +5,20 @@ import lombok.Getter;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import java.util.List;
+
 public class SuperbVoteEvent extends Event {
     @Getter
     private static final HandlerList handlerList = new HandlerList();
     @Getter
     private final Vote vote;
     @Getter
-    private VoteReward voteReward;
+    private List<VoteReward> voteRewards;
 
-    public SuperbVoteEvent(Vote vote, VoteReward reward) {
+    public SuperbVoteEvent(Vote vote, List<VoteReward> rewards) {
         super();
         this.vote = vote;
-        this.voteReward = reward;
+        this.voteRewards = rewards;
     }
 
     @Override

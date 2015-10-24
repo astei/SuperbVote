@@ -17,6 +17,7 @@ public class VoteReward {
     private final List<String> commands;
     private final VoteMessage playerMessage;
     private final VoteMessage broadcastMessage;
+    private final boolean cascade;
 
     public void broadcastVote(Vote vote, boolean playerAnnounce, boolean broadcast) {
         Player onlinePlayer = Bukkit.getPlayer(vote.getUuid());
