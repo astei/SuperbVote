@@ -38,10 +38,12 @@ public class SuperbVoteListener implements Listener {
 
             Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(), event.getVote().getAddress(), new Date());
 
-            if (SuperbVote.getPlugin().getCooldownHandler().triggerCooldown(vote)) {
-                SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
-                        vote.getServiceName() + ") due to service cooldown.");
-                return;
+            if (!vote.getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE)) {
+                if (SuperbVote.getPlugin().getCooldownHandler().triggerCooldown(vote)) {
+                    SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
+                            vote.getServiceName() + ") due to service cooldown.");
+                    return;
+                }
             }
 
             processVote(vote, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.enabled"),

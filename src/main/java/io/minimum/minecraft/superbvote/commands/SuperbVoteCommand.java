@@ -23,7 +23,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class SuperbVoteCommand implements CommandExecutor {
-    public static final String FAKE_HOST_NAME_FOR_VOTE = "fakevote.example.com";
+    public static final String FAKE_HOST_NAME_FOR_VOTE = UUID.randomUUID().toString();
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.DARK_GRAY.toString() + ChatColor.STRIKETHROUGH + "      " +
