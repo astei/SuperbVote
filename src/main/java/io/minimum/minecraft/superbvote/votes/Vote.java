@@ -12,12 +12,14 @@ public class Vote {
     private final UUID uuid;
     private final String serviceName;
     private final Date received;
+    private final String address;
     private final long randomSeed;
 
-    public Vote(String name, UUID uuid, String serviceName, Date received) {
+    public Vote(String name, UUID uuid, String serviceName, String address, Date received) {
         this.name = name;
         this.uuid = uuid;
         this.serviceName = serviceName;
+        this.address = address;
         this.received = received;
         this.randomSeed = new Random().nextLong();
     }

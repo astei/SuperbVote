@@ -23,6 +23,8 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class SuperbVoteCommand implements CommandExecutor {
+    public static final String FAKE_HOST_NAME_FOR_VOTE = "fakevote.example.com";
+
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.DARK_GRAY.toString() + ChatColor.STRIKETHROUGH + "      " +
                 ChatColor.GRAY + " SuperbVote " +
@@ -211,7 +213,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                 com.vexsoftware.votifier.model.Vote vote = new com.vexsoftware.votifier.model.Vote();
                 vote.setUsername(args[1]);
                 vote.setTimeStamp(new Date().toString());
-                vote.setAddress("fakevote.example.com");
+                vote.setAddress(FAKE_HOST_NAME_FOR_VOTE);
                 vote.setServiceName(args[2]);
                 Bukkit.getPluginManager().callEvent(new VotifierEvent(vote));
 

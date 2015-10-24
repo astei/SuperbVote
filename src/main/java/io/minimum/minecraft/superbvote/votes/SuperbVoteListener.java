@@ -2,6 +2,7 @@ package io.minimum.minecraft.superbvote.votes;
 
 import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.commands.SuperbVoteCommand;
 import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
@@ -35,7 +36,7 @@ public class SuperbVoteListener implements Listener {
                 caseCorrected = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid);
             }
 
-            Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(), new Date());
+            Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(), event.getVote().getAddress(), new Date());
 
             if (SuperbVote.getPlugin().getCooldownHandler().triggerCooldown(vote)) {
                 SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
@@ -63,7 +64,9 @@ public class SuperbVoteListener implements Listener {
                     throw new RuntimeException("No vote reward found for '" + vote + "'");
                 }
 
-                SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
+                if (!vote.getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE)) {
+                    SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
+                }
 
                 for (VoteReward reward : preVoteEvent.getVoteRewards()) {
                     reward.broadcastVote(vote, !queued, broadcast && !queued);
