@@ -18,10 +18,14 @@ public class VoteCooldownHandler {
         Preconditions.checkNotNull(vote, "vote");
 
         Map<String, LocalDateTime> lastVoteMap = cooldowns.computeIfAbsent(vote.getUuid(), (ignored) -> new ConcurrentHashMap<>(8, 0.75f, 2));
-        LocalDateTime lastTime = lastVoteMap.get(vote.getServiceName());
         LocalDateTime now = LocalDateTime.now();
-        if (lastTime == null || lastTime.isBefore(now.minusSeconds(
-                SuperbVote.getPlugin().getConfig().getInt("votes.cooldown-per-service", 3600)))) {
+        LocalDateTime lastTime = lastVoteMap.putIfAbsent(vote.getServiceName(), LocalDateTime.now());
+        if (lastTime == null) {
+            // Allowed, and the cooldown has been registered.
+            return true;
+        }
+        if (lastTime.isBefore(now.minusSeconds(SuperbVote.getPlugin().getConfig().getInt("votes.cooldown-per-service", 3600)))) {
+            // Cooldown expired, new one now in place.
             lastVoteMap.put(vote.getServiceName(), now);
             return false;
         }
