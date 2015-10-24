@@ -98,7 +98,7 @@ public class SuperbVoteConfiguration {
         }
 
         List<RewardMatcher> rewards = RewardMatchers.getMatchers(section.getConfigurationSection("if"));
-        boolean cascade = section.getBoolean("allow-cascade");
+        boolean cascade = section.getBoolean("allow-cascading");
 
         return new VoteReward(name, rewards, commands, playerMessage, broadcast, cascade);
     }

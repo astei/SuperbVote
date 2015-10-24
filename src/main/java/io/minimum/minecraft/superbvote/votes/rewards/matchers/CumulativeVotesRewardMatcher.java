@@ -10,6 +10,6 @@ public class CumulativeVotesRewardMatcher implements RewardMatcher {
 
     @Override
     public boolean matches(Vote vote) {
-        return SuperbVote.getPlugin().getVoteStorage().getVotes(vote.getUuid()) == votes;
+        return SuperbVote.getPlugin().getVoteStorage().getVotes(vote.getUuid()) + 1 == votes;
     }
 }
