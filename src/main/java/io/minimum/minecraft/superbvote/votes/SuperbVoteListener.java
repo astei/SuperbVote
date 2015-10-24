@@ -36,9 +36,10 @@ public class SuperbVoteListener implements Listener {
                 caseCorrected = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid);
             }
 
-            Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(), event.getVote().getAddress(), new Date());
+            Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(),
+                    event.getVote().getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE), new Date());
 
-            if (!vote.getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE)) {
+            if (!vote.isFakeVote()) {
                 if (SuperbVote.getPlugin().getCooldownHandler().triggerCooldown(vote)) {
                     SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
                             vote.getServiceName() + ") due to service cooldown.");
@@ -66,7 +67,7 @@ public class SuperbVoteListener implements Listener {
                     throw new RuntimeException("No vote reward found for '" + vote + "'");
                 }
 
-                if (!vote.getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE)) {
+                if (!vote.isFakeVote()) {
                     SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
                 }
 
