@@ -8,22 +8,23 @@ import io.minimum.minecraft.superbvote.votes.SuperbPreVoteEvent;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteEvent;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
+import lombok.Data;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class SuperbVoteCommand implements CommandExecutor {
     public static final String FAKE_HOST_NAME_FOR_VOTE = UUID.randomUUID().toString();
+    private final Map<String, ConfirmingCommand> wantToClear = new HashMap<>();
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.DARK_GRAY.toString() + ChatColor.STRIKETHROUGH + "      " +
@@ -232,9 +233,25 @@ public class SuperbVoteCommand implements CommandExecutor {
                     sender.sendMessage(ChatColor.RED + "You can't do this.");
                     return true;
                 }
-                SuperbVote.getPlugin().getVoteStorage().clearVotes();
-                SuperbVote.getPlugin().getQueuedVotes().clearVotes();
-                sender.sendMessage(ChatColor.GREEN + "All votes cleared.");
+                ConfirmingCommand confirm = wantToClear.remove(sender.getName());
+                if (confirm != null) {
+                    confirm.getCancellationTask().cancel();
+                    SuperbVote.getPlugin().getVoteStorage().clearVotes();
+                    SuperbVote.getPlugin().getQueuedVotes().clearVotes();
+                    sender.sendMessage(ChatColor.GREEN + "All votes cleared.");
+                } else {
+                    sender.sendMessage(ChatColor.DARK_RED + ChatColor.BOLD.toString() + "DANGER DANGER DANGER DANGER DANGER DANGER");
+                    sender.sendMessage("");
+                    sender.sendMessage(ChatColor.RED + "This command " + ChatColor.BOLD + "irreversibly" + ChatColor.RESET + ChatColor.RED + " clears your votes!");
+                    sender.sendMessage(ChatColor.RED + "If you want to continue, please repeat the command.");
+                    sender.sendMessage(ChatColor.RED + "This chance expires in 15 seconds.");
+                    sender.sendMessage("");
+                    sender.sendMessage(ChatColor.DARK_RED + ChatColor.BOLD.toString() + "DANGER DANGER DANGER DANGER DANGER DANGER");
+
+                    final String name = sender.getName();
+                    BukkitTask task = Bukkit.getScheduler().runTaskLater(SuperbVote.getPlugin(), () -> wantToClear.remove(name), 15 * 20);
+                    wantToClear.put(sender.getName(), new ConfirmingCommand(task));
+                }
                 return true;
             case "migrate":
                 if (!sender.hasPermission("superbvote.admin")) {
@@ -256,9 +273,13 @@ public class SuperbVoteCommand implements CommandExecutor {
                         sender.sendMessage(ChatColor.RED + "Not a valid listener. Currently supported: gal.");
                         return true;
                 }
-                sender.sendMessage(ChatColor.GRAY + "Migrating... (this may take several minutes)");
                 Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+                    if (SuperbVote.getPlugin().getVoteStorage().getPagesAvailable(1) > 0) {
+                        sender.sendMessage(ChatColor.RED + "You already have votes in the database. Use /sv clear and try again.");
+                        return;
+                    }
                     try {
+                        sender.sendMessage(ChatColor.GRAY + "Migrating... (this may take several minutes)");
                         migration.execute();
                         sender.sendMessage(ChatColor.GREEN + "Migration succeeded!");
                     } catch (Exception e) {
@@ -273,5 +294,10 @@ public class SuperbVoteCommand implements CommandExecutor {
         }
 
         return true;
+    }
+
+    @Data
+    private class ConfirmingCommand {
+        private final BukkitTask cancellationTask;
     }
 }
