@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.block.Skull;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class TopPlayerSignUpdater implements Runnable {
@@ -15,6 +17,17 @@ public class TopPlayerSignUpdater implements Runnable {
     private final List<String> top;
 
     private static final String UNKNOWN_USERNAME = "MHF_Question";
+    private static final BlockFace[] FACES = {BlockFace.SELF, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST};
+
+    public static Optional<Block> findSkullBlock(Block origin) {
+        Block at = origin.getRelative(BlockFace.UP);
+        for (BlockFace face : FACES) {
+            Block b = at.getRelative(face);
+            if (b.getType() == Material.SKULL)
+                return Optional.of(b);
+        }
+        return Optional.empty();
+    }
 
     @Override
     public void run() {
@@ -39,13 +52,14 @@ public class TopPlayerSignUpdater implements Runnable {
             worldSign.update();
 
             // If a head location is also present, set the location for that.
-            if (sign.getHead().isPresent()) {
-                Block headBlock = sign.getHead().get().getBlock();
-                if (headBlock.getType() != Material.SKULL_ITEM) {
+            Optional<Block> headBlock = findSkullBlock(sign.getSign().getBlock());
+            if (headBlock.isPresent()) {
+                Block head = headBlock.get();
+                if (head.getType() != Material.SKULL_ITEM) {
                     continue;
                 }
 
-                Skull skull = (Skull) headBlock.getState();
+                Skull skull = (Skull) head.getState();
                 skull.setSkullType(SkullType.PLAYER);
                 skull.setOwner(sign.getPosition() > top.size() ? UNKNOWN_USERNAME : top.get(sign.getPosition() - 1));
                 skull.update();

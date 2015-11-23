@@ -3,6 +3,7 @@ package io.minimum.minecraft.superbvote;
 import io.minimum.minecraft.superbvote.commands.SuperbVoteCommand;
 import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
 import io.minimum.minecraft.superbvote.scoreboard.ScoreboardHandler;
+import io.minimum.minecraft.superbvote.signboard.TopPlayerSignStorage;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.VoteCooldownHandler;
@@ -32,6 +33,8 @@ public class SuperbVote extends JavaPlugin {
     private ScoreboardHandler scoreboardHandler;
     @Getter
     private final VoteCooldownHandler cooldownHandler = new VoteCooldownHandler();
+    @Getter
+    private TopPlayerSignStorage topPlayerSignStorage;
 
     @Override
     public void onEnable() {
