@@ -1,12 +1,10 @@
 package io.minimum.minecraft.superbvote.signboard;
 
+import io.minimum.minecraft.superbvote.util.SerializableLocation;
 import lombok.Data;
-import org.bukkit.Location;
-
-import java.util.Optional;
 
 @Data
 public class TopPlayerSign {
-    private final Location sign;
+    private final SerializableLocation sign;
     private final int position;
 }

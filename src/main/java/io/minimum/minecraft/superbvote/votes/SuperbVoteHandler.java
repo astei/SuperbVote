@@ -1,6 +1,7 @@
 package io.minimum.minecraft.superbvote.votes;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.signboard.TopPlayerSignFetcher;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,5 +15,7 @@ public class SuperbVoteHandler implements Listener {
         }
         event.getVoteRewards().forEach(reward -> reward.runCommands(event.getVote()));
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
+        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(
+                SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()));
     }
 }

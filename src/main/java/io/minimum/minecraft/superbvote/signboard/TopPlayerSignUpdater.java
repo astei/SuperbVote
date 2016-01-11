@@ -32,7 +32,7 @@ public class TopPlayerSignUpdater implements Runnable {
     @Override
     public void run() {
         for (TopPlayerSign sign : toUpdate) {
-            Block block = sign.getSign().getBlock();
+            Block block = sign.getSign().getBukkitLocation().getBlock();
             switch (block.getType()) {
                 case SIGN_POST:
                 case WALL_SIGN:
@@ -52,13 +52,9 @@ public class TopPlayerSignUpdater implements Runnable {
             worldSign.update();
 
             // If a head location is also present, set the location for that.
-            Optional<Block> headBlock = findSkullBlock(sign.getSign().getBlock());
+            Optional<Block> headBlock = findSkullBlock(sign.getSign().getBukkitLocation().getBlock());
             if (headBlock.isPresent()) {
                 Block head = headBlock.get();
-                if (head.getType() != Material.SKULL_ITEM) {
-                    continue;
-                }
-
                 Skull skull = (Skull) head.getState();
                 skull.setSkullType(SkullType.PLAYER);
                 skull.setOwner(sign.getPosition() > top.size() ? UNKNOWN_USERNAME : top.get(sign.getPosition() - 1));
