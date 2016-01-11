@@ -93,6 +93,11 @@ public class SuperbVote extends JavaPlugin {
     public void onDisable() {
         voteStorage.save();
         queuedVotes.save();
+        try {
+            topPlayerSignStorage.save(new File(getDataFolder(), "top_voter_signs.json"));
+        } catch (IOException e) {
+            throw new RuntimeException("Exception whilst saving top player signs", e);
+        }
     }
 
     public void reloadPlugin() {

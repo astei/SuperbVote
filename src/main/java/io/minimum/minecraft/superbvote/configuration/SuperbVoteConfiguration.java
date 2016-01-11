@@ -7,6 +7,7 @@ import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.commands.VoteCommand;
 import io.minimum.minecraft.superbvote.configuration.message.OfflineVoteMessages;
+import io.minimum.minecraft.superbvote.configuration.message.PlainStringMessage;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessages;
 import io.minimum.minecraft.superbvote.storage.JsonVoteStorage;
@@ -38,6 +39,8 @@ public class SuperbVoteConfiguration {
     private final VoteCommand voteCommand;
     @Getter
     private final TextLeaderboardConfiguration textLeaderboardConfiguration;
+    @Getter
+    private final TopPlayerSignsConfiguration topPlayerSignsConfiguration;
 
     private static final List<String> SUPPORTED_STORAGE = ImmutableList.of("json", "mysql");
 
@@ -77,6 +80,12 @@ public class SuperbVoteConfiguration {
                 configuration.getInt("leaderboard.text.per-page", 10),
                 OfflineVoteMessages.from(configuration.getConfigurationSection("leaderboard.text"), "header"),
                 OfflineVoteMessages.from(configuration.getConfigurationSection("leaderboard.text"), "entry")
+        );
+
+        topPlayerSignsConfiguration = new TopPlayerSignsConfiguration(
+                configuration.getStringList("top-player-signs.format").stream()
+                        .map(PlainStringMessage::new)
+                        .collect(Collectors.toList())
         );
     }
 

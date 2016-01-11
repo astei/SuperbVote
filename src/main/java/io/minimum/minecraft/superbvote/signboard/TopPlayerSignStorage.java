@@ -40,7 +40,7 @@ public class TopPlayerSignStorage {
 
     public void save(File file) throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE)) {
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
             gson.toJson(signList, writer);
         }
     }

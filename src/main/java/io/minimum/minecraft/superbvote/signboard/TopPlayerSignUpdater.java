@@ -1,5 +1,8 @@
 package io.minimum.minecraft.superbvote.signboard;
 
+import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.configuration.message.OfflineVoteMessage;
+import io.minimum.minecraft.superbvote.configuration.message.PlainStringMessage;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
@@ -10,14 +13,15 @@ import org.bukkit.block.Skull;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 public class TopPlayerSignUpdater implements Runnable {
     private final List<TopPlayerSign> toUpdate;
-    private final List<String> top;
+    private final List<UUID> top;
 
     private static final String UNKNOWN_USERNAME = "MHF_Question";
-    private static final BlockFace[] FACES = {BlockFace.SELF, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST};
+    public static final BlockFace[] FACES = {BlockFace.SELF, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST};
 
     public static Optional<Block> findSkullBlock(Block origin) {
         Block at = origin.getRelative(BlockFace.UP);
@@ -45,9 +49,18 @@ public class TopPlayerSignUpdater implements Runnable {
             Sign worldSign = (Sign) block.getState();
             // TODO: Formatting
             if (sign.getPosition() > top.size()) {
-                worldSign.setLine(0, "???");
+                for (int i = 0; i < 4; i++) {
+                    worldSign.setLine(i, "???");
+                }
             } else {
-                worldSign.setLine(0, top.get(sign.getPosition() - 1));
+                for (int i = 0; i < Math.min(4, SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().size()); i++) {
+                    PlainStringMessage m = SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().get(i);
+                    worldSign.setLine(i, m.getWithOfflinePlayer(null, top.get(sign.getPosition() - 1)).replace("%num%",
+                            Integer.toString(sign.getPosition())));
+                }
+                for (int i = SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().size(); i < 4; i++) {
+                    worldSign.setLine(i, "");
+                }
             }
             worldSign.update();
 
@@ -57,7 +70,8 @@ public class TopPlayerSignUpdater implements Runnable {
                 Block head = headBlock.get();
                 Skull skull = (Skull) head.getState();
                 skull.setSkullType(SkullType.PLAYER);
-                skull.setOwner(sign.getPosition() > top.size() ? UNKNOWN_USERNAME : top.get(sign.getPosition() - 1));
+                skull.setOwner(sign.getPosition() > top.size() ? UNKNOWN_USERNAME :
+                        SuperbVote.getPlugin().getUuidCache().getNameFromUuid(top.get(sign.getPosition() - 1)));
                 skull.update();
             }
         }

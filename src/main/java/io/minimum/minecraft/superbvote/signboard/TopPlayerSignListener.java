@@ -4,48 +4,73 @@ import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.util.SerializableLocation;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 
-import java.util.Optional;
-
 public class TopPlayerSignListener implements Listener {
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         for (TopPlayerSign sign : SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()) {
             if (sign.getSign().getBukkitLocation().equals(event.getBlock().getLocation())) {
                 // A sign is being destroyed.
-                if (!event.getPlayer().hasPermission("superbvote.managesigns")) {
+                if (!doSignBreak(event.getPlayer(), sign)) {
                     event.setCancelled(true);
-                    event.getPlayer().sendMessage(ChatColor.RED + "You can't destroy this sign.");
-                    return;
                 }
-
-                // Otherwise, destroy this sign.
-                SuperbVote.getPlugin().getTopPlayerSignStorage().removeSign(sign);
-                event.getPlayer().sendMessage(ChatColor.RED + "Top voter sign unregistered.");
-                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(
-                        SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()));
                 return;
-            } else {
-                Optional<Block> headBlock = TopPlayerSignUpdater.findSkullBlock(event.getBlock());
-                if (headBlock.isPresent()) {
-                    event.setCancelled(true);
-                    if (!event.getPlayer().hasPermission("superbvote.managesigns")) {
-                        event.getPlayer().sendMessage(ChatColor.RED + "You can't destroy this skull.");
-                    } else {
-                        event.getPlayer().sendMessage(ChatColor.RED + "You can't destroy this skull. Destroy its sign first.");
+            }
+
+            // A sign (which may be ours) may be supported on this block.
+            for (BlockFace face : TopPlayerSignUpdater.FACES) {
+                if (event.getBlock().getRelative(face).getLocation().equals(sign.getSign().getBukkitLocation())) {
+                    if (!doSignBreak(event.getPlayer(), sign)) {
+                        event.setCancelled(true);
+                        return;
                     }
-                    return;
                 }
             }
         }
     }
 
-    @EventHandler
+    private boolean doSignBreak(Player player, TopPlayerSign sign) {
+        // A sign is being destroyed.
+        if (!player.hasPermission("superbvote.managesigns")) {
+            player.sendMessage(ChatColor.RED + "You can't destroy this sign.");
+            return false;
+        }
+
+        // Otherwise, destroy this sign.
+        SuperbVote.getPlugin().getTopPlayerSignStorage().removeSign(sign);
+        player.sendMessage(ChatColor.RED + "Top voter sign unregistered.");
+        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(
+                SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()));
+        return true;
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if (event.getBlockPlaced().getType() == Material.SKULL && event.getPlayer().hasPermission("superbvote.managesigns")) {
+            Block down = event.getBlockPlaced().getRelative(BlockFace.DOWN);
+            for (TopPlayerSign sign : SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()) {
+                for (BlockFace face : TopPlayerSignUpdater.FACES) {
+                    if (down.getRelative(face).getLocation().equals(sign.getSign().getBukkitLocation())) {
+                        // We found an adjacent sign. Update so that the change will be reflected.
+                        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(
+                                SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()));
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onSignChange(SignChangeEvent event) {
         try {
             if (event.getLine(0).startsWith("[topvoter]") && event.getPlayer().hasPermission("superbvote.managesigns")) {
