@@ -30,7 +30,7 @@ public class SuperbVoteListener implements Listener {
                 // Permit case-correction during voting.
                 uuid = SuperbVote.getPlugin().getUuidCache().getUuidFromName(event.getVote().getUsername());
                 if (uuid == null) {
-                    SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + event.getVote().getUsername() + " as we couldn't look up their username");
+                    SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + event.getVote().getUsername() + " as we couldn't look up their UUID");
                     return;
                 }
                 caseCorrected = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid);
