@@ -60,14 +60,8 @@
             <url>http://repo.md-5.net/content/repositories/snapshots/</url>
         </repository>
         <repository>
-            <id>codecrafter47-repo</id>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <url>http://nexus.codecrafter47.dyndns.eu/content/repositories/public/</url>
+            <id>clip-repo</id>
+            <url>http://extendedclip.com:8081/nexus/content/repositories/extendedclip/</url>
         </repository>
     </repositories>
 
@@ -120,9 +114,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>me.clip.placeholderapi</groupId>
-            <artifactId>PlaceholderAPI</artifactId>
-            <version>1.8.5</version>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>1.9.0.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
