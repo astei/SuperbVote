@@ -61,7 +61,7 @@
         </repository>
         <repository>
             <id>clip-repo</id>
-            <url>http://extendedclip.com:8081/nexus/content/repositories/extendedclip/</url>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
     </repositories>
 
