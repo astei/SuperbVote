@@ -9,6 +9,8 @@ import io.minimum.minecraft.superbvote.signboard.TopPlayerSignStorage;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.VoteCooldownHandler;
+import io.minimum.minecraft.superbvote.uuid.OfflineModeUuidCache;
+import io.minimum.minecraft.superbvote.uuid.OnlineModeUuidCache;
 import io.minimum.minecraft.superbvote.uuid.UuidCache;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteHandler;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
@@ -28,7 +30,7 @@ public class SuperbVote extends JavaPlugin {
     @Getter
     private VoteStorage voteStorage;
     @Getter
-    private UuidCache uuidCache = new UuidCache();
+    private UuidCache uuidCache;
     @Getter
     private QueuedVotesStorage queuedVotes;
     @Getter
@@ -54,6 +56,16 @@ public class SuperbVote extends JavaPlugin {
             queuedVotes = new QueuedVotesStorage(new File(getDataFolder(), "queued_votes.json"));
         } catch (IOException e) {
             throw new RuntimeException("Exception whilst initializing queued vote storage", e);
+        }
+
+        if (Bukkit.getOnlineMode()) {
+            uuidCache = new OnlineModeUuidCache();
+        } else {
+            try {
+                uuidCache = new OfflineModeUuidCache(new File(getDataFolder(), "offline_player_name_cache.json"));
+            } catch (IOException e) {
+                throw new RuntimeException("Exception whilst initializing UUID cache", e);
+            }
         }
 
         scoreboardHandler = new ScoreboardHandler();
@@ -97,6 +109,10 @@ public class SuperbVote extends JavaPlugin {
             topPlayerSignStorage.save(new File(getDataFolder(), "top_voter_signs.json"));
         } catch (IOException e) {
             throw new RuntimeException("Exception whilst saving top player signs", e);
+        }
+
+        if (uuidCache instanceof OfflineModeUuidCache) {
+            ((OfflineModeUuidCache) uuidCache).save();
         }
     }
 

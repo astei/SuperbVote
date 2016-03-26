@@ -37,6 +37,10 @@
                             <pattern>org.slf4j</pattern>
                             <shadedPattern>io.minimum.minecraft.superbvote.slf4j</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>com.github.benmanes.caffeine</pattern>
+                            <shadedPattern>io.minimum.minecraft.superbvote.caffeine</shadedPattern>
+                        </relocation>
                     </relocations>
                 </configuration>
                 <executions>
@@ -118,6 +122,12 @@
             <artifactId>placeholderapi</artifactId>
             <version>1.9.0.1</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>2.2.3</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
