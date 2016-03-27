@@ -6,7 +6,7 @@
 
     <groupId>io.minimum.minecraft</groupId>
     <artifactId>SuperbVote</artifactId>
-    <version>0.3</version>
+    <version>0.3.1</version>
 
     <build>
         <plugins>
