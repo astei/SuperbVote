@@ -49,6 +49,9 @@ broadcast:
   # Should we broadcast votes at all?
   enabled: true
 
+  # Should we tell players if they voted?
+  message-player: true
+
   # Should we broadcast queued votes?
   queued: true
 

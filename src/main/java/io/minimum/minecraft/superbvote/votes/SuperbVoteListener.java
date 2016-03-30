@@ -72,7 +72,8 @@ public class SuperbVoteListener implements Listener {
                 }
 
                 for (VoteReward reward : preVoteEvent.getVoteRewards()) {
-                    reward.broadcastVote(vote, !queued, broadcast && !queued);
+                    reward.broadcastVote(vote, !queued && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.message-player"),
+                            broadcast && !queued);
                 }
 
                 Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote, preVoteEvent.getVoteRewards())));
