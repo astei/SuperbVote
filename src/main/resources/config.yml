@@ -23,6 +23,10 @@ votes:
   # Default: 3600 seconds (1 hour)
   cooldown-per-service: 3600
 
+  # Whether or not players are to be treated as online mode or not. This setting is only applied when the server is offline mode
+  # and BungeeCord IP forwarding is enabled.
+  treat-bungee-ip-forwarding-as-online-mode: true
+
 # Rewards. This is the main section you will need to edit. Ordering is important.
 rewards:
   # Example of matchers.
