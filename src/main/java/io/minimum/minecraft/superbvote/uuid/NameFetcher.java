@@ -1,18 +1,17 @@
 package io.minimum.minecraft.superbvote.uuid;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.ByteStreams;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,18 +23,16 @@ public class NameFetcher {
     public static List<String> nameHistoryFromUuid(UUID uuid) throws IOException {
         URLConnection connection = new URL("https://api.mojang.com/user/profiles/" + uuid.toString().replace("-", "").toLowerCase() + "/names").openConnection();
 
-        String text;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+            Type listType = new TypeToken<List<Name>>() {}.getType();
+            List<Name> names = gson.fromJson(reader, listType);
 
-        try (InputStream is = connection.getInputStream()) {
-            text = new String(ByteStreams.toByteArray(is), Charsets.UTF_8);
+            if (names == null) {
+                return ImmutableList.of();
+            }
+
+            return names.stream().map(name -> name.name).collect(Collectors.toList());
         }
-
-        if (text.isEmpty()) return Collections.emptyList();
-
-        Type listType = new TypeToken<List<Name>>() {}.getType();
-        List<Name> names = gson.fromJson(text, listType);
-
-        return names.stream().map(name -> name.name).collect(Collectors.toList());
     }
 
     public static class Name {
