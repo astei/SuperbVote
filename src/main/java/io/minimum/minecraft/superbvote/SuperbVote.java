@@ -60,7 +60,11 @@ public class SuperbVote extends JavaPlugin {
 
         if (Bukkit.getOnlineMode() || (Bukkit.spigot().getConfig().getBoolean("settings.bungeecord", false) &&
                 getConfig().getBoolean("votes.treat-bungee-ip-forwarding-as-online-mode"))) {
-            uuidCache = new OnlineModeUuidCache();
+            try {
+                uuidCache = new OnlineModeUuidCache(new File(getDataFolder(), "online_player_name_cache.json"));
+            } catch (IOException e) {
+                throw new RuntimeException("Exception whilst initializing UUID cache", e);
+            }
         } else {
             try {
                 uuidCache = new OfflineModeUuidCache(new File(getDataFolder(), "offline_player_name_cache.json"));
