@@ -24,7 +24,7 @@ votes:
   cooldown-per-service: 3600
 
   # Whether or not to treat the server as online-mode. This is mostly required for BungeeCord setups.
-  force-online-mode: true
+  force-online-mode: false
 
 # Rewards. This is the main section you will need to edit. Ordering is important.
 rewards:
