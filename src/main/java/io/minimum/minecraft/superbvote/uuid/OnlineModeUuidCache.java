@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-// TODO: Maybe should use a supplementing local cache.
 public class OnlineModeUuidCache implements UuidCache {
     private final LoadingCache<String, UUID> nameCache = Caffeine.newBuilder()
             .refreshAfterWrite(1, TimeUnit.HOURS)

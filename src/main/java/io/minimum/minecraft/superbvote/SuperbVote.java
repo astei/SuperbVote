@@ -58,8 +58,7 @@ public class SuperbVote extends JavaPlugin {
             throw new RuntimeException("Exception whilst initializing queued vote storage", e);
         }
 
-        if (Bukkit.getOnlineMode() || (Bukkit.spigot().getConfig().getBoolean("settings.bungeecord", false) &&
-                getConfig().getBoolean("votes.treat-bungee-ip-forwarding-as-online-mode"))) {
+        if (Bukkit.getOnlineMode() || getConfig().getBoolean("votes.force-online-mode")) {
             try {
                 uuidCache = new OnlineModeUuidCache(new File(getDataFolder(), "online_player_name_cache.json"));
             } catch (IOException e) {
