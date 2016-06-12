@@ -95,7 +95,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                 });
                 return true;
             case "top":
-                if (!sender.hasPermission("superbvote.admin") || !sender.hasPermission("superbvote.top")) {
+                if (!(sender.hasPermission("superbvote.admin") || sender.hasPermission("superbvote.top"))) {
                     sender.sendMessage(ChatColor.RED + "You can't do this.");
                     return true;
                 }
