@@ -9,15 +9,15 @@ import java.util.UUID;
 public class SuperbVotePlaceholderProvider implements PlaceholderProvider {
     @Override
     public String applyForBroadcast(Player voted, String message, Vote vote) {
-        return message.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName())
-                .replaceAll("%uuid%", vote.getUuid().toString());
+        return message.replace("%player%", vote.getName()).replace("%service%", vote.getServiceName())
+                .replace("%uuid%", vote.getUuid().toString());
     }
 
     @Override
     public String applyForReminder(Player player, String message) {
         int votes = SuperbVote.getPlugin().getVoteStorage().getVotes(player.getUniqueId());
-        return message.replaceAll("%player%", player.getName()).replaceAll("%votes%", Integer.toString(votes))
-                .replaceAll("%uuid%", player.getUniqueId().toString());
+        return message.replace("%player%", player.getName()).replace("%votes%", Integer.toString(votes))
+                .replace("%uuid%", player.getUniqueId().toString());
     }
 
     @Override
@@ -35,7 +35,7 @@ public class SuperbVotePlaceholderProvider implements PlaceholderProvider {
         int votes = SuperbVote.getPlugin().getVoteStorage().getVotes(player);
         String name = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(player);
         if (name != null)
-            message = message.replaceAll("%player%", name);
-        return message.replaceAll("%votes%", Integer.toString(votes)).replaceAll("%uuid%", player.toString());
+            message = message.replace("%player%", name);
+        return message.replace("%votes%", Integer.toString(votes)).replace("%uuid%", player.toString());
     }
 }
