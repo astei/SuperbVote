@@ -265,7 +265,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                     return true;
                 }
                 Migration migration;
-                switch (args[0]) {
+                switch (args[1]) {
                     case "gal":
                         migration = new GAListenerMigration();
                         break;
