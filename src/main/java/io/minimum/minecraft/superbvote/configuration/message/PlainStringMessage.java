@@ -33,7 +33,7 @@ public class PlainStringMessage implements VoteMessage, OfflineVoteMessage {
         String replaced = message;
         for (PlaceholderProvider provider : PROVIDER_LIST) {
             if (provider.canUse()) {
-                replaced = provider.applyForBroadcast(onlineVoted, message, vote);
+                replaced = provider.applyForBroadcast(onlineVoted, replaced, vote);
             }
         }
         return replaced;
