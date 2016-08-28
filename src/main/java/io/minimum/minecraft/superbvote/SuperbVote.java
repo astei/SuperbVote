@@ -16,7 +16,6 @@ import io.minimum.minecraft.superbvote.votes.SuperbVoteHandler;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
 import io.minimum.minecraft.superbvote.votes.VoteReminder;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -58,7 +57,7 @@ public class SuperbVote extends JavaPlugin {
             throw new RuntimeException("Exception whilst initializing queued vote storage", e);
         }
 
-        if (Bukkit.getOnlineMode() || getConfig().getBoolean("votes.force-online-mode")) {
+        if (getServer().getOnlineMode() || getConfig().getBoolean("votes.force-online-mode")) {
             try {
                 uuidCache = new OnlineModeUuidCache(new File(getDataFolder(), "online_player_name_cache.json"));
             } catch (IOException e) {
@@ -89,18 +88,18 @@ public class SuperbVote extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TopPlayerSignListener(), this);
         getServer().getScheduler().runTaskTimerAsynchronously(this, voteStorage::save, 20, 20 * 30);
         getServer().getScheduler().runTaskTimerAsynchronously(this, queuedVotes::save, 20, 20 * 30);
-        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
-        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(topPlayerSignStorage.getSignList()));
+        getServer().getScheduler().runTaskAsynchronously(this, SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
+        getServer().getScheduler().runTaskAsynchronously(this, new TopPlayerSignFetcher(topPlayerSignStorage.getSignList()));
 
         int r = getConfig().getInt("vote-reminder.repeat");
-        String text = SuperbVote.getPlugin().getConfig().getString("vote-reminder.message");
+        String text = getConfig().getString("vote-reminder.message");
         if (text != null && !text.isEmpty()) {
             if (r > 0) {
                 getServer().getScheduler().runTaskTimerAsynchronously(this, new VoteReminder(), 20 * r, 20 * r);
             }
         }
 
-        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             getLogger().info("Using clip's PlaceholderAPI to provide extra placeholders.");
         }
     }
@@ -124,7 +123,7 @@ public class SuperbVote extends JavaPlugin {
         reloadConfig();
         configuration = new SuperbVoteConfiguration(getConfig());
         scoreboardHandler.reload();
-        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
+        getServer().getScheduler().runTaskAsynchronously(this, getScoreboardHandler()::doPopulate);
         getCommand("vote").setExecutor(configuration.getVoteCommand());
     }
 }
