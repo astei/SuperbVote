@@ -67,7 +67,7 @@ public class SuperbVoteListener implements Listener {
                     throw new RuntimeException("No vote reward found for '" + vote + "'");
                 }
 
-                if (!vote.isFakeVote()) {
+                if (!vote.isFakeVote() || SuperbVote.getPlugin().getConfig().getBoolean("votes.process-fake-votes")) {
                     SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
                 }
 

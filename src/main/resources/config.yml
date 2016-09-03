@@ -26,6 +26,9 @@ votes:
   # Whether or not to treat the server as online-mode. This is mostly required for BungeeCord setups.
   force-online-mode: false
 
+  # Whether or not to treat fake votes as real votes
+  process-fake-votes: true
+
 # Rewards. This is the main section you will need to edit. Ordering is important.
 rewards:
   # Example of matchers.
