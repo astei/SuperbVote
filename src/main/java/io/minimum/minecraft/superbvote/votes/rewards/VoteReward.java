@@ -24,7 +24,8 @@ public class VoteReward {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (player == onlinePlayer && playerAnnounce) {
                 playerMessage.sendAsBroadcast(player, vote);
-            } else if (broadcast) {
+            }
+	    if (broadcast) {
                 broadcastMessage.sendAsBroadcast(player, vote);
             }
         }
