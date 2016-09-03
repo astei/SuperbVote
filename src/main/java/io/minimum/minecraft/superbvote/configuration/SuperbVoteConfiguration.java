@@ -1,11 +1,23 @@
 package io.minimum.minecraft.superbvote.configuration;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.pool.HikariPool;
+
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.commands.VoteCommand;
+import io.minimum.minecraft.superbvote.configuration.message.JsonTextMessage;
 import io.minimum.minecraft.superbvote.configuration.message.OfflineVoteMessages;
 import io.minimum.minecraft.superbvote.configuration.message.PlainStringMessage;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
@@ -19,15 +31,6 @@ import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChanceRewardMatche
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatchers;
 import lombok.Getter;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemoryConfiguration;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class SuperbVoteConfiguration {
     private final ConfigurationSection configuration;
@@ -71,7 +74,9 @@ public class SuperbVoteConfiguration {
         reminderMessage = VoteMessages.from(configuration, "vote-reminder.message");
 
         if (configuration.getBoolean("vote-command.enabled")) {
-            voteCommand = new VoteCommand(VoteMessages.from(configuration, "vote-command.text"));
+        	boolean useJson = configuration.getBoolean("vote-command.use-json-text");
+        	VoteMessage voteMessage =  VoteMessages.from(configuration, "vote-command.text", false, useJson);
+        	voteCommand = new VoteCommand(voteMessage);
         } else {
             voteCommand = null;
         }
@@ -95,8 +100,8 @@ public class SuperbVoteConfiguration {
         String name = section.getName();
 
         List<String> commands = section.getStringList("commands");
-        VoteMessage broadcast = VoteMessages.from(section, "broadcast-message", true);
-        VoteMessage playerMessage = VoteMessages.from(section, "player-message", true);
+        VoteMessage broadcast = VoteMessages.from(section, "broadcast-message", true, false);
+        VoteMessage playerMessage = VoteMessages.from(section, "player-message", true, false);
 
         List<RewardMatcher> rewards = RewardMatchers.getMatchers(section.getConfigurationSection("if"));
         boolean cascade = section.getBoolean("allow-cascading");

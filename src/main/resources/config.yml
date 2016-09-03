@@ -62,8 +62,11 @@ broadcast:
   queued: true
 
 # Vote command.
+# See http://www.minecraftforum.net/forums/minecraft-discussion/redstone-discussion-and/351959-1-9-json-text-component-for-tellraw-title-books
+# and https://www.minecraftjson.com for json text format
 vote-command:
   enabled: false
+  use-json-text: false
   text: |-
     You could vote for us, but the owner forgot to add the list of websites to vote at!
 
