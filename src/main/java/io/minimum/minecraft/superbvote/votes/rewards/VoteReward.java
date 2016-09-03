@@ -22,10 +22,10 @@ public class VoteReward {
     public void broadcastVote(Vote vote, boolean playerAnnounce, boolean broadcast) {
         Player onlinePlayer = Bukkit.getPlayer(vote.getUuid());
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player == onlinePlayer && playerAnnounce) {
+            if (playerMessage != null && player == onlinePlayer && playerAnnounce) {
                 playerMessage.sendAsBroadcast(player, vote);
             }
-	    if (broadcast) {
+	    if (broadcastMessage != null && broadcast) {
                 broadcastMessage.sendAsBroadcast(player, vote);
             }
         }

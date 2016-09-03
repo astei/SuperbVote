@@ -95,16 +95,8 @@ public class SuperbVoteConfiguration {
         String name = section.getName();
 
         List<String> commands = section.getStringList("commands");
-        VoteMessage broadcast = VoteMessages.from(section, "broadcast-message");
-        VoteMessage playerMessage = VoteMessages.from(section, "player-message");
-
-        if (broadcast == null) {
-            throw new RuntimeException("'broadcast-message' missing in section '" + name + "' (do you need to enable 'inherit-default'?)");
-        }
-
-        if (playerMessage == null) {
-            throw new RuntimeException("'player-message' missing in section '" + name + "' (do you need to enable 'inherit-default'?)");
-        }
+        VoteMessage broadcast = VoteMessages.from(section, "broadcast-message", true);
+        VoteMessage playerMessage = VoteMessages.from(section, "player-message", true);
 
         List<RewardMatcher> rewards = RewardMatchers.getMatchers(section.getConfigurationSection("if"));
         boolean cascade = section.getBoolean("allow-cascading");
