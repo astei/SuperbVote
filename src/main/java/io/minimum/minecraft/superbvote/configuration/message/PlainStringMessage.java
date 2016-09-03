@@ -1,21 +1,15 @@
 package io.minimum.minecraft.superbvote.configuration.message;
 
-import com.google.common.collect.ImmutableList;
-import io.minimum.minecraft.superbvote.configuration.message.placeholder.ClipsPlaceholderProvider;
-import io.minimum.minecraft.superbvote.configuration.message.placeholder.PlaceholderProvider;
-import io.minimum.minecraft.superbvote.configuration.message.placeholder.SuperbVotePlaceholderProvider;
-import io.minimum.minecraft.superbvote.votes.Vote;
-import org.bukkit.Bukkit;
+import java.util.UUID;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.List;
-import java.util.UUID;
+import io.minimum.minecraft.superbvote.configuration.message.placeholder.PlaceholderProvider;
+import io.minimum.minecraft.superbvote.votes.Vote;
 
-public class PlainStringMessage implements VoteMessage, OfflineVoteMessage {
-    private static final List<PlaceholderProvider> PROVIDER_LIST = ImmutableList.of(new SuperbVotePlaceholderProvider(),
-            new ClipsPlaceholderProvider());
+public class PlainStringMessage extends MessageBase implements VoteMessage, OfflineVoteMessage {
 
     private final String message;
 
@@ -25,33 +19,12 @@ public class PlainStringMessage implements VoteMessage, OfflineVoteMessage {
 
     @Override
     public void sendAsBroadcast(Player player, Vote vote) {
-        player.sendMessage(getAsBroadcast(vote));
-    }
-
-    protected String getAsBroadcast(Vote vote) {
-        Player onlineVoted = Bukkit.getPlayerExact(vote.getName());
-        String replaced = message;
-        for (PlaceholderProvider provider : PROVIDER_LIST) {
-            if (provider.canUse()) {
-                replaced = provider.applyForBroadcast(onlineVoted, replaced, vote);
-            }
-        }
-        return replaced;
+        player.sendMessage(getAsBroadcast(message, vote));
     }
 
     @Override
     public void sendAsReminder(Player player) {
-        player.sendMessage(getAsReminder(player));
-    }
-
-    protected String getAsReminder(Player player) {
-        String replaced = message;
-        for (PlaceholderProvider provider : PROVIDER_LIST) {
-            if (provider.canUse()) {
-                replaced = provider.applyForReminder(player, replaced);
-            }
-        }
-        return replaced;
+        player.sendMessage(getAsReminder(message, player));
     }
 
     @Override
