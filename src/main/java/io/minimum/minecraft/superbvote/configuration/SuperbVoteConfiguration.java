@@ -74,9 +74,9 @@ public class SuperbVoteConfiguration {
         reminderMessage = VoteMessages.from(configuration, "vote-reminder.message");
 
         if (configuration.getBoolean("vote-command.enabled")) {
-        	boolean useJson = configuration.getBoolean("vote-command.use-json-text");
-        	VoteMessage voteMessage =  VoteMessages.from(configuration, "vote-command.text", false, useJson);
-        	voteCommand = new VoteCommand(voteMessage);
+            boolean useJson = configuration.getBoolean("vote-command.use-json-text");
+            VoteMessage voteMessage =  VoteMessages.from(configuration, "vote-command.text", false, useJson);
+            voteCommand = new VoteCommand(voteMessage);
         } else {
             voteCommand = null;
         }
