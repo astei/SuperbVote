@@ -4,9 +4,13 @@ import com.google.common.collect.ImmutableList;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import org.bukkit.configuration.ConfigurationSection;
 
+import javax.script.ScriptException;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 public class RewardMatchers {
     public static List<RewardMatcher> getMatchers(ConfigurationSection section) {
@@ -42,6 +46,16 @@ public class RewardMatchers {
         Object cumulativeObject = section.get("cumulative-votes");
         if (cumulativeObject != null && cumulativeObject instanceof Integer) {
             matchers.add(new CumulativeVotesRewardMatcher((int) cumulativeObject));
+        }
+
+        // script: <path>
+        String script = section.getString("script");
+        if (script != null) {
+            try {
+                matchers.add(new ScriptRewardMatcher(Paths.get(script)));
+            } catch (IOException | ScriptException e) {
+                SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to parse script " + script, e);
+            }
         }
 
         return matchers;
