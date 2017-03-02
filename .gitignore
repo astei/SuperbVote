@@ -1,0 +1,12 @@
+# We use maven!
+/build.xml
+
+# Maven
+/target
+dependency-reduced-pom.xml
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
