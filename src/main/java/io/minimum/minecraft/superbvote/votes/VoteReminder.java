@@ -8,7 +8,9 @@ public class VoteReminder implements Runnable {
     @Override
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(player);
+            if (player.hasPermission("superbvote.notify")) {
+                SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(player);
+            }
         }
     }
 }

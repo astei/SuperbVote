@@ -10,3 +10,6 @@ commands:
     aliases: [sv]
   vote:
     description: SuperbVote vote command.
+permissions:
+  superbvote.notify:
+    default: true

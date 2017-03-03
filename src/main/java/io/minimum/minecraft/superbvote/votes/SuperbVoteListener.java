@@ -104,7 +104,8 @@ public class SuperbVoteListener implements Listener {
             votes.forEach(v -> processVote(v, false, false, true));
 
             // Remind players to vote.
-            if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join")) {
+            if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join") &&
+                    event.getPlayer().hasPermission("superbvote.notify")) {
                 SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer());
             }
         });
