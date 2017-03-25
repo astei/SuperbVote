@@ -58,6 +58,16 @@ public class RewardMatchers {
             }
         }
 
+        // world: <world> or worlds: <worlds>
+        String world = section.getString("world", null);
+        if (world != null) {
+            matchers.add(new WorldRewardMatcher(ImmutableList.of(world)));
+        }
+        List<String> worlds = section.getStringList("worlds");
+        if (world == null && worlds != null && !worlds.isEmpty()) {
+            matchers.add(new WorldRewardMatcher(worlds));
+        }
+
         return matchers;
     }
 }
