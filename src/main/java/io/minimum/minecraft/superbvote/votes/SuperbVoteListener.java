@@ -23,9 +23,11 @@ public class SuperbVoteListener implements Listener {
             Player onlinePlayer = Bukkit.getPlayerExact(event.getVote().getUsername());
             UUID uuid;
             String caseCorrected;
+            String worldName = null;
             if (onlinePlayer != null) {
                 uuid = onlinePlayer.getUniqueId();
                 caseCorrected = onlinePlayer.getName();
+                worldName = onlinePlayer.getLocation().getWorld().getName();
             } else {
                 // Permit case-correction during voting.
                 uuid = SuperbVote.getPlugin().getUuidCache().getUuidFromName(event.getVote().getUsername());
@@ -37,7 +39,7 @@ public class SuperbVoteListener implements Listener {
             }
 
             Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(),
-                    event.getVote().getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE), new Date());
+                    event.getVote().getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE), worldName, new Date());
 
             if (!vote.isFakeVote()) {
                 if (SuperbVote.getPlugin().getCooldownHandler().triggerCooldown(vote)) {

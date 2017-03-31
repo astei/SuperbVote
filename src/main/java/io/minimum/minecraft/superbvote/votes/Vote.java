@@ -14,13 +14,15 @@ public class Vote {
     private final Date received;
     private final boolean fakeVote;
     private final long randomSeed;
+    private final String worldName;
 
-    public Vote(String name, UUID uuid, String serviceName, boolean fakeVote, Date received) {
+    public Vote(String name, UUID uuid, String serviceName, boolean fakeVote, String worldName, Date received) {
         this.name = name;
         this.uuid = uuid;
         this.serviceName = serviceName;
         this.fakeVote = fakeVote;
         this.received = received;
+        this.worldName = worldName;
         this.randomSeed = new Random().nextLong();
     }
 
