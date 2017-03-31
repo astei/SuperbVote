@@ -161,7 +161,7 @@ public class MysqlVoteStorage implements VoteStorage {
     public int getPagesAvailable(int amount) {
         try (Connection connection = dbPool.getConnection()) {
             // Ugly SQL, but who cares
-            try (PreparedStatement statement = connection.prepareStatement("SELECT CEIL(COUNT(uuid) / " + amount + ") FROM votes")) {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT CEIL(COUNT(uuid) / " + amount + ") FROM " + tableName)) {
                 try (ResultSet resultSet = statement.executeQuery()) {
                     return resultSet.next() ? resultSet.getInt(1) : 0;
                 }
