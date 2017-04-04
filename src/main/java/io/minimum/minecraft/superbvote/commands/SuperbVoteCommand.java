@@ -75,7 +75,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                             uuid = ((Player) sender).getUniqueId();
                             name = sender.getName();
                         } else {
-                            sender.sendMessage(ChatColor.RED + "You can't do this unless you're a player/");
+                            sender.sendMessage(ChatColor.RED + "You can't do this unless you're a player!");
                             return;
                         }
                     } else if (args.length == 2) {
