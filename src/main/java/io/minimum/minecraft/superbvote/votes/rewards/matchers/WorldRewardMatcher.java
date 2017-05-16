@@ -18,6 +18,8 @@ public class WorldRewardMatcher implements RewardMatcher {
 
     @Override
     public boolean matches(Vote vote) {
+        if (vote.getWorldName() == null)
+            return false;
         return names.contains(vote.getWorldName().toLowerCase());
     }
 }
