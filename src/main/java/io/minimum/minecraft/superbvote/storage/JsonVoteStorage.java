@@ -7,10 +7,7 @@ import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.io.*;
 import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -70,9 +67,9 @@ public class JsonVoteStorage implements VoteStorage {
     public List<UUID> getTopVoters(int amount, int page) {
         int skip = page * amount;
         return voteCounts.entrySet().stream()
+                .sorted(Collections.reverseOrder(Comparator.comparing(Map.Entry::getValue)))
                 .skip(skip)
                 .limit(amount)
-                .sorted(Collections.reverseOrder((entry, entry2) -> entry.getValue().compareTo(entry2.getValue())))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
     }
