@@ -33,6 +33,7 @@ rewards:
   # Example of matchers.
   - if:
       permission: superbvote.test
+      # A chance of 100 is 1% chance, 200 is 2%, etc. If you don't want to have chances, delete the line below.
       chance: 100
       service: SpecialService
     commands:
