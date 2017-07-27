@@ -5,8 +5,11 @@ import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.time.LocalTime;
 import java.util.*;
@@ -16,23 +19,52 @@ import java.util.logging.Level;
 
 @RequiredArgsConstructor
 public class MysqlVoteStorage implements VoteStorage {
+    public static final int TABLE_VERSION_2 = 2;
+    public static final int TABLE_VERSION = TABLE_VERSION_2;
+
     private final HikariPool dbPool;
     private final String tableName;
     private final boolean readOnly;
 
     public void initialize() {
+        // Load current DB version from disk
+        YamlConfiguration dbInfo = YamlConfiguration.loadConfiguration(new File(SuperbVote.getPlugin().getDataFolder(), "db_version.yml"));
+        dbInfo.options().header("DO NOT EDIT - SuperbVote internal use");
+        int ver = dbInfo.getInt("db_version", 1);
+        boolean isUpdated = false;
+
         try (Connection connection = dbPool.getConnection()) {
             try (ResultSet t = connection.getMetaData().getTables(null, null, tableName, null)) {
                 if (!t.next()) {
                     try (Statement statement = connection.createStatement()) {
-                        statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT)");
+                        statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT, last_vote TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
                         // This may speed up leaderboards
                         statement.executeUpdate("CREATE INDEX uuid_votes_idx ON " + tableName + " (uuid, votes)");
+                    }
+                } else {
+                    if (ver < TABLE_VERSION) {
+                        SuperbVote.getPlugin().getLogger().log(Level.INFO, "Migrating database from version " + ver + " to " + TABLE_VERSION + ", this may take a while...");
+                        // We may need to add in the new last_vote column
+                        if (ver < TABLE_VERSION_2) {
+                            try (Statement statement = connection.createStatement()) {
+                                statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN last_vote TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                            }
+                            isUpdated = true;
+                        }
                     }
                 }
             }
         } catch (SQLException e) {
             SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to initialize database", e);
+        }
+
+        if (isUpdated) {
+            dbInfo.set("db_version", TABLE_VERSION);
+            try {
+                dbInfo.save(new File(SuperbVote.getPlugin().getDataFolder(), "db_version.yml"));
+            } catch (IOException e) {
+                SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to save DB info", e);
+            }
         }
     }
 
@@ -169,6 +201,21 @@ public class MysqlVoteStorage implements VoteStorage {
         } catch (SQLException e) {
             SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get top votes page count", e);
             return 0;
+        }
+    }
+
+    @Override
+    public boolean hasVotedToday(UUID player) {
+        try (Connection connection = dbPool.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT 1 FROM " + tableName + " WHERE uuid = ? AND DATE(last_vote) = CURRENT_DATE()")) {
+                statement.setString(1, player.toString());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    return resultSet.next();
+                }
+            }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get top votes page count", e);
+            return false;
         }
     }
 

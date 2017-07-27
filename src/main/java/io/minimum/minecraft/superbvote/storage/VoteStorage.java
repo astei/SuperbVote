@@ -20,5 +20,7 @@ public interface VoteStorage {
 
     int getPagesAvailable(int amount);
 
+    boolean hasVotedToday(UUID player);
+
     void save();
 }
