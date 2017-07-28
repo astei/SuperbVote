@@ -2,6 +2,7 @@
 # A superb vote plugin made by Tux.
 #
 # https://github.com/minecrafter/SuperbVote/wiki
+# Official server list: https://www.craftservers.net/
 
 # Database configuration.
 storage:
@@ -18,7 +19,7 @@ storage:
 
 # General vote configuration.
 votes:
-  # At least this many seconds need to pass before allowing another vote (per-service). This will apply per service.
+  # At least this many seconds must pass before allowing another vote (per-service). This will apply per service.
   # Default: 3600 seconds (1 hour)
   cooldown-per-service: 3600
 
@@ -30,7 +31,7 @@ votes:
 
 # Rewards. This is the main section you will need to edit. Ordering is important.
 rewards:
-  # Example of matchers.
+  # Example of matchers. See https://github.com/minecrafter/SuperbVote/wiki/Configuration#if for examples.
   - if:
       permission: superbvote.test
       chance: 100
