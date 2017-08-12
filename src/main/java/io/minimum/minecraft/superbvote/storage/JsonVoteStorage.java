@@ -32,20 +32,26 @@ public class JsonVoteStorage implements VoteStorage {
 
         if (!file.exists()) file.createNewFile();
 
-        Map<UUID, Integer> votesToMigrate = null;
+        boolean needMigrate = false;
         try (Reader reader = Files.newBufferedReader(saveTo)) {
             VotingFile vf = gson.fromJson(reader, VotingFile.class);
-            if (vf == null || vf.records == null) {
-                votesToMigrate = gson.fromJson(reader, new TypeToken<Map<UUID, Integer>>() {
-                }.getType());
+            if (vf == null || vf.records == null || vf.records.isEmpty()) {
+                needMigrate = true;
             } else {
                 voteCounts.putAll(vf.records);
             }
         }
 
-        if (votesToMigrate != null) {
-            VotingFile vf = migrateOldVersion(votesToMigrate);
-            voteCounts.putAll(vf.records);
+        if (needMigrate) {
+            Map<UUID, Integer> votesToMigrate = null;
+            try (Reader reader = Files.newBufferedReader(saveTo)) {
+                votesToMigrate = gson.fromJson(reader, new TypeToken<Map<UUID, Integer>>() {
+                }.getType());
+            }
+            if (votesToMigrate != null) {
+                VotingFile vf = migrateOldVersion(votesToMigrate);
+                voteCounts.putAll(vf.records);
+            }
         }
     }
 
@@ -85,7 +91,7 @@ public class JsonVoteStorage implements VoteStorage {
             PlayerRecord rec = voteCounts.putIfAbsent(player, new PlayerRecord(1));
             if (rec != null) {
                 rec.votes++;
-                rec.lastVoted = Calendar.getInstance();
+                rec.lastVoted = System.currentTimeMillis();
             }
         } finally {
             rwl.writeLock().unlock();
@@ -167,10 +173,12 @@ public class JsonVoteStorage implements VoteStorage {
         try {
             PlayerRecord pr = voteCounts.get(player);
             if (pr != null) {
-                Calendar calendar = Calendar.getInstance();
-                return calendar.get(Calendar.YEAR) == pr.lastVoted.get(Calendar.YEAR) &&
-                        calendar.get(Calendar.MONTH) == pr.lastVoted.get(Calendar.MONTH) &&
-                        calendar.get(Calendar.DAY_OF_MONTH) == pr.lastVoted.get(Calendar.DAY_OF_MONTH);
+                Calendar then = Calendar.getInstance();
+                then.setTimeInMillis(pr.lastVoted);
+                Calendar today = Calendar.getInstance();
+                return then.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                        then.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
+                        then.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH);
             }
             return false;
         } finally {
@@ -190,7 +198,7 @@ public class JsonVoteStorage implements VoteStorage {
         } finally {
             rwl.readLock().unlock();
         }
-        try (Writer writer = Files.newBufferedWriter(saveTo, StandardOpenOption.WRITE)) {
+        try (Writer writer = Files.newBufferedWriter(saveTo, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             gson.toJson(new VotingFile(VERSION, prs), writer);
         } catch (IOException e) {
             throw new RuntimeException("Unable to save votes to " + saveTo, e);
@@ -209,15 +217,15 @@ public class JsonVoteStorage implements VoteStorage {
 
     private static class PlayerRecord implements Comparable<PlayerRecord> {
         private int votes;
-        private Calendar lastVoted;
+        private long lastVoted;
 
         private PlayerRecord(int votes) {
-            this(votes, Calendar.getInstance());
+            this(votes, System.currentTimeMillis());
         }
 
-        private PlayerRecord(int votes, Calendar date) {
+        private PlayerRecord(int votes, long lastVoted) {
             this.votes = votes;
-            this.lastVoted = date;
+            this.lastVoted = lastVoted;
         }
 
         @Override
