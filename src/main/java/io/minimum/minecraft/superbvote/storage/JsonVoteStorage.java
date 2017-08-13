@@ -80,18 +80,22 @@ public class JsonVoteStorage implements VoteStorage {
 
     @Override
     public void issueVote(Vote vote) {
-        addVote(vote.getUuid());
+        addVote(vote.getUuid(), vote.getReceived().getTime());
     }
 
     @Override
     public void addVote(UUID player) {
+        addVote(player, System.currentTimeMillis());
+    }
+
+    private void addVote(UUID player, long ts) {
         Preconditions.checkNotNull(player, "player");
         rwl.writeLock().lock();
         try {
-            PlayerRecord rec = voteCounts.putIfAbsent(player, new PlayerRecord(1));
+            PlayerRecord rec = voteCounts.putIfAbsent(player, new PlayerRecord(1, ts));
             if (rec != null) {
                 rec.votes++;
-                rec.lastVoted = System.currentTimeMillis();
+                rec.lastVoted = ts;
             }
         } finally {
             rwl.writeLock().unlock();
