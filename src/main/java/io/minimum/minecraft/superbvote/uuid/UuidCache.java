@@ -1,13 +1,15 @@
 package io.minimum.minecraft.superbvote.uuid;
 
-import org.bukkit.entity.Player;
+import org.bukkit.Bukkit;
 
 import java.util.UUID;
 
-public interface UuidCache {
-    void cachePlayer(Player player);
+public class UuidCache {
+    public UUID getUuidFromName(String name) {
+        return Bukkit.getOfflinePlayer(name).getUniqueId();
+    }
 
-    UUID getUuidFromName(String name);
-
-    String getNameFromUuid(UUID uuid);
+    public String getNameFromUuid(UUID uuid) {
+        return Bukkit.getOfflinePlayer(uuid).getName();
+    }
 }

@@ -9,8 +9,6 @@ import io.minimum.minecraft.superbvote.signboard.TopPlayerSignStorage;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.VoteCooldownHandler;
-import io.minimum.minecraft.superbvote.uuid.OfflineModeUuidCache;
-import io.minimum.minecraft.superbvote.uuid.OnlineModeUuidCache;
 import io.minimum.minecraft.superbvote.uuid.UuidCache;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteHandler;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
@@ -57,19 +55,7 @@ public class SuperbVote extends JavaPlugin {
             throw new RuntimeException("Exception whilst initializing queued vote storage", e);
         }
 
-        if (getServer().getOnlineMode() || getConfig().getBoolean("votes.force-online-mode")) {
-            try {
-                uuidCache = new OnlineModeUuidCache(new File(getDataFolder(), "online_player_name_cache.json"));
-            } catch (IOException e) {
-                throw new RuntimeException("Exception whilst initializing UUID cache", e);
-            }
-        } else {
-            try {
-                uuidCache = new OfflineModeUuidCache(new File(getDataFolder(), "offline_player_name_cache.json"));
-            } catch (IOException e) {
-                throw new RuntimeException("Exception whilst initializing UUID cache", e);
-            }
-        }
+        uuidCache = new UuidCache();
 
         scoreboardHandler = new ScoreboardHandler();
 
@@ -112,10 +98,6 @@ public class SuperbVote extends JavaPlugin {
             topPlayerSignStorage.save(new File(getDataFolder(), "top_voter_signs.json"));
         } catch (IOException e) {
             throw new RuntimeException("Exception whilst saving top player signs", e);
-        }
-
-        if (uuidCache instanceof OfflineModeUuidCache) {
-            ((OfflineModeUuidCache) uuidCache).save();
         }
     }
 
