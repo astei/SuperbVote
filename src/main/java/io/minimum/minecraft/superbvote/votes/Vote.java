@@ -13,7 +13,6 @@ public class Vote {
     private final String serviceName;
     private final Date received;
     private final boolean fakeVote;
-    private final long randomSeed;
     private final String worldName;
 
     public Vote(String name, UUID uuid, String serviceName, boolean fakeVote, String worldName, Date received) {
@@ -23,15 +22,5 @@ public class Vote {
         this.fakeVote = fakeVote;
         this.received = received;
         this.worldName = worldName;
-        this.randomSeed = new Random().nextLong();
-    }
-
-    /**
-     * Returns a random generator seeded with a vote-specific seed. This is used to ensure reward chances are
-     * deterministic per vote.
-     * @return a {@link Random} instance
-     */
-    public Random getDeterministicGenerator() {
-        return new Random(randomSeed);
     }
 }
