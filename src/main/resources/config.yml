@@ -23,9 +23,6 @@ votes:
   # Default: 3600 seconds (1 hour)
   cooldown-per-service: 3600
 
-  # Whether or not to treat the server as online-mode. This is mostly required for BungeeCord setups.
-  force-online-mode: false
-
   # Whether or not to treat fake votes as real votes
   process-fake-votes: true
 
