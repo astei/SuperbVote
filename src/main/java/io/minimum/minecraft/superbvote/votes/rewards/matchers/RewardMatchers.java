@@ -26,10 +26,34 @@ public class RewardMatchers {
             matchers.add(new PermissionRewardMatcher(perm));
         }
 
-        // chance: <chance>
+        // chance-fractional: <chance>
+        Object chanceFracObject = section.get("chance-fractional");
         Object chanceObject = section.get("chance");
-        if (chanceObject != null && chanceObject instanceof Integer) {
-            matchers.add(new ChanceRewardMatcher((int) chanceObject));
+        if (chanceFracObject != null && chanceFracObject instanceof Integer) {
+            if ((int) chanceFracObject < 1) {
+                SuperbVote.getPlugin().getLogger().severe("Fraction " + chanceFracObject + " is not valid; must be 1 or more.");
+            } else {
+                matchers.add(new ChanceFractionalRewardMatcher((int) chanceFracObject));
+            }
+        } else if (chanceObject != null && chanceObject instanceof Integer) {
+            SuperbVote.getPlugin().getLogger().warning("The 'chance' vote matcher will be switched to be based on percentages out of 100% in a future release. Use 'chance-fractional' to " +
+                    "retain the current behavior, or migrate to a percentage matcher by specifying 'chance-percentage' in your configuration.");
+            if ((int) chanceFracObject < 1) {
+                SuperbVote.getPlugin().getLogger().severe("Fraction " + chanceObject + " is not valid; must be 1 or more.");
+            } else {
+                matchers.add(new ChanceFractionalRewardMatcher((int) chanceObject));
+            }
+        }
+
+        // chance-percentage: <chance>
+        Object chancePerObject = section.get("chance-percentage");
+        if (chancePerObject != null && chancePerObject instanceof Integer) {
+            int chancePerInt = (int) chancePerObject;
+            if (chancePerInt > 0 && chancePerInt < 100) {
+                matchers.add(new ChancePercentageRewardMatcher(chancePerInt));
+            } else {
+                SuperbVote.getPlugin().getLogger().severe("Percentage " + chancePerInt + " is not valid; must be between 1 and 99.");
+            }
         }
 
         // service: <service> or services: <services>

@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.Random;
 
 @RequiredArgsConstructor
-public class ChanceRewardMatcher implements RewardMatcher {
+public class ChanceFractionalRewardMatcher implements RewardMatcher {
     private static final Random random = new Random();
     private final int chance;
 

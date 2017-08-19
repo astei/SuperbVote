@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChancePercentageRewardMatcher;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 
@@ -17,7 +18,6 @@ import com.zaxxer.hikari.pool.HikariPool;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.commands.VoteCommand;
-import io.minimum.minecraft.superbvote.configuration.message.JsonTextMessage;
 import io.minimum.minecraft.superbvote.configuration.message.OfflineVoteMessages;
 import io.minimum.minecraft.superbvote.configuration.message.PlainStringMessage;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
@@ -27,7 +27,7 @@ import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
-import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChanceRewardMatcher;
+import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChanceFractionalRewardMatcher;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatchers;
 import lombok.Getter;
@@ -118,7 +118,7 @@ public class SuperbVoteConfiguration {
             boolean allAgree = true;
             for (RewardMatcher matcher : reward.getRewardMatchers()) {
                 // Break early if we've matched a chance award.
-                if (chanceMatched && matcher instanceof ChanceRewardMatcher) {
+                if (chanceMatched && (matcher instanceof ChanceFractionalRewardMatcher || matcher instanceof ChancePercentageRewardMatcher)) {
                     allAgree = false;
                     break;
                 }
@@ -132,7 +132,7 @@ public class SuperbVoteConfiguration {
                 if (!reward.isCascade())
                     return best;
                 for (RewardMatcher matcher : reward.getRewardMatchers()) {
-                    if (matcher instanceof ChanceRewardMatcher)
+                    if (matcher instanceof ChanceFractionalRewardMatcher || matcher instanceof ChancePercentageRewardMatcher)
                         chanceMatched = true;
                 }
             }
