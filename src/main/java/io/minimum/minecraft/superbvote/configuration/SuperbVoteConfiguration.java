@@ -102,11 +102,12 @@ public class SuperbVoteConfiguration {
         List<String> commands = section.getStringList("commands");
         VoteMessage broadcast = VoteMessages.from(section, "broadcast-message", true, false);
         VoteMessage playerMessage = VoteMessages.from(section, "player-message", true, false);
+        VoteMessage playerWrongWorldMessage = VoteMessages.from(section, "player-wrong-world-message", true, false);
 
         List<RewardMatcher> rewards = RewardMatchers.getMatchers(section.getConfigurationSection("if"));
         boolean cascade = section.getBoolean("allow-cascading");
 
-        return new VoteReward(name, rewards, commands, playerMessage, broadcast, cascade);
+        return new VoteReward(name, rewards, commands, playerMessage, playerWrongWorldMessage, broadcast, cascade);
     }
 
     public List<VoteReward> getBestRewards(Vote vote) {
@@ -143,6 +144,16 @@ public class SuperbVoteConfiguration {
 
     public boolean requirePlayersOnline() {
         return configuration.getBoolean("require-online", false);
+    }
+    
+    public boolean matchesDisabledWorld(String worldName) {
+        List<String> disabledWorlds = configuration.getStringList("disabled-worlds");
+        for (String world : disabledWorlds) {
+            if (world.equalsIgnoreCase(worldName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static String replacePlaceholders(String text, Vote vote) {

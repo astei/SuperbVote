@@ -38,16 +38,22 @@ rewards:
     commands:
     - give %player% diamond 4
     player-message: "&aThanks for meeting nearly impossible conditions, you have been rewarded with 4 diamonds and $1000."
+    player-wrong-world-message: "&cThanks for voting for us on %service%, your vote will be processed when you are in an enabled world next time!"
     broadcast-message: "&a%player% got really lucky and was rewarded with 4 diamonds and $1000!"
   # Default rewards are defined by having no preconditions. Place it at the bottom of the config.
   - if: {}
     commands:
     - eco give %player% 1000
     player-message: "&aThanks for voting for us on %service%, you have been rewarded with $1000."
+    player-wrong-world-message: "&cThanks for voting for us on %service%, your vote will be processed when you are in an enabled World next time!"
     broadcast-message: "&a%player% has voted for us on %service% and was rewarded with $1000!"
 
 # Whether or not players need to be online to vote. If set, offline player votes are queued for when the player next logs in.
 require-online: true
+
+# If a player is located in one of this worlds, the votes will be queued until he is in an enabled world next time. Requires "require-online" to be set to work properly.
+disabled-worlds:
+  - world_nether
 
 # Broadcast settings:
 broadcast:

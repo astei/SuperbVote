@@ -33,6 +33,7 @@ public class SuperbPreVoteEvent extends Event {
     public enum Result {
         PROCESS_VOTE,
         QUEUE_VOTE,
+        QUEUE_VOTE_WRONG_WORLD,
         CANCEL
     }
 }

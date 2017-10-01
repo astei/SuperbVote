@@ -16,6 +16,7 @@ public class VoteReward {
     private final List<RewardMatcher> rewardMatchers;
     private final List<String> commands;
     private final VoteMessage playerMessage;
+    private final VoteMessage playerWrongWorldMessage;
     private final VoteMessage broadcastMessage;
     private final boolean cascade;
 
@@ -25,7 +26,19 @@ public class VoteReward {
             if (playerMessage != null && player == onlinePlayer && playerAnnounce) {
                 playerMessage.sendAsBroadcast(player, vote);
             }
-	    if (broadcastMessage != null && broadcast) {
+            if (broadcastMessage != null && broadcast) {
+                broadcastMessage.sendAsBroadcast(player, vote);
+            }
+        }
+    }
+
+    public void broadcastVoteWrongWorld(Vote vote, boolean playerAnnounce, boolean broadcast) {
+        Player onlinePlayer = Bukkit.getPlayer(vote.getUuid());
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (playerWrongWorldMessage != null && player == onlinePlayer && playerAnnounce) {
+                playerWrongWorldMessage.sendAsBroadcast(player, vote);
+            }
+            if (broadcastMessage != null && broadcast) {
                 broadcastMessage.sendAsBroadcast(player, vote);
             }
         }
