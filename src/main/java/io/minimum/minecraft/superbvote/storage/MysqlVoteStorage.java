@@ -85,7 +85,7 @@ public class MysqlVoteStorage implements VoteStorage {
         Preconditions.checkNotNull(player, "player");
         try (Connection connection = dbPool.getConnection()) {
             if (knownName != null) {
-                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " VALUES (?, ?, 1)" +
+                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes) VALUES (?, ?, 1)" +
                         " ON DUPLICATE KEY UPDATE votes = votes + 1, last_name = ?")) {
                     statement.setString(1, player.toString());
                     statement.setString(2, knownName);
@@ -93,7 +93,7 @@ public class MysqlVoteStorage implements VoteStorage {
                     statement.executeUpdate();
                 }
             } else {
-                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " VALUES (?, NULL, 1)" +
+                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes) VALUES (?, NULL, 1)" +
                         " ON DUPLICATE KEY UPDATE votes = votes + 1")) {
                     statement.setString(1, player.toString());
                     statement.executeUpdate();
