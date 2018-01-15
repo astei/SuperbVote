@@ -1,12 +1,10 @@
 package io.minimum.minecraft.superbvote.configuration.message;
 
+import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import io.minimum.minecraft.superbvote.votes.Vote;
-
-public class JsonTextMessage extends MessageBase implements VoteMessage
-{
+public class JsonTextMessage extends MessageBase implements VoteMessage {
     private final String message;
 
     public JsonTextMessage(String message) {

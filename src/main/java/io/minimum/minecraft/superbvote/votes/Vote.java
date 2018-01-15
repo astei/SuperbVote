@@ -3,7 +3,6 @@ package io.minimum.minecraft.superbvote.votes;
 import lombok.Data;
 
 import java.util.Date;
-import java.util.Random;
 import java.util.UUID;
 
 @Data

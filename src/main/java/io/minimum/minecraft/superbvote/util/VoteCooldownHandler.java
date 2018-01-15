@@ -5,7 +5,6 @@ import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

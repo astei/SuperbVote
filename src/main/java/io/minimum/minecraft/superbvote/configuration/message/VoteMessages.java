@@ -16,8 +16,7 @@ public class VoteMessages {
                 String message = root.getString(section);
                 return jsonText ? new JsonTextMessage(message) : new PlainStringMessage(message);
             }
-        }
-        else if (optional) {
+        } else if (optional) {
             return null;
         }
 

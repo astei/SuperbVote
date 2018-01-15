@@ -1,7 +1,6 @@
 package io.minimum.minecraft.superbvote.votes.rewards.matchers;
 
 import io.minimum.minecraft.superbvote.votes.Vote;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;

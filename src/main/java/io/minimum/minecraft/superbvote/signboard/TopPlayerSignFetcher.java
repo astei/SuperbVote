@@ -7,8 +7,6 @@ import org.bukkit.Bukkit;
 
 import java.util.List;
 import java.util.OptionalInt;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class TopPlayerSignFetcher implements Runnable {

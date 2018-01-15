@@ -25,7 +25,7 @@ public class VoteReward {
             if (playerMessage != null && player == onlinePlayer && playerAnnounce) {
                 playerMessage.sendAsBroadcast(player, vote);
             }
-	    if (broadcastMessage != null && broadcast) {
+            if (broadcastMessage != null && broadcast) {
                 broadcastMessage.sendAsBroadcast(player, vote);
             }
         }

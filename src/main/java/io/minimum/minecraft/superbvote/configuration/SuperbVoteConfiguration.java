@@ -1,21 +1,9 @@
 package io.minimum.minecraft.superbvote.configuration;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChancePercentageRewardMatcher;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemoryConfiguration;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.pool.HikariPool;
-
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.commands.VoteCommand;
 import io.minimum.minecraft.superbvote.configuration.message.OfflineVoteMessages;
@@ -28,9 +16,19 @@ import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChanceFractionalRewardMatcher;
+import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChancePercentageRewardMatcher;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatchers;
 import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SuperbVoteConfiguration {
     private final ConfigurationSection configuration;
@@ -75,7 +73,7 @@ public class SuperbVoteConfiguration {
 
         if (configuration.getBoolean("vote-command.enabled")) {
             boolean useJson = configuration.getBoolean("vote-command.use-json-text");
-            VoteMessage voteMessage =  VoteMessages.from(configuration, "vote-command.text", false, useJson);
+            VoteMessage voteMessage = VoteMessages.from(configuration, "vote-command.text", false, useJson);
             voteCommand = new VoteCommand(voteMessage);
         } else {
             voteCommand = null;

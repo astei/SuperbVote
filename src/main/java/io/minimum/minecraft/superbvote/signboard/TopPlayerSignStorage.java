@@ -33,7 +33,8 @@ public class TopPlayerSignStorage {
     public void load(File file) throws IOException {
         if (file.exists()) {
             try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-                signList.addAll(gson.fromJson(reader, new TypeToken<List<TopPlayerSign>>() {}.getType()));
+                signList.addAll(gson.fromJson(reader, new TypeToken<List<TopPlayerSign>>() {
+                }.getType()));
             }
         }
     }

@@ -1,7 +1,6 @@
 package io.minimum.minecraft.superbvote.signboard;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
-import io.minimum.minecraft.superbvote.configuration.message.OfflineVoteMessage;
 import io.minimum.minecraft.superbvote.configuration.message.PlainStringMessage;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,6 @@ import org.bukkit.block.Skull;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 public class TopPlayerSignUpdater implements Runnable {
