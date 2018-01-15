@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.io.*;
@@ -12,8 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -144,7 +143,7 @@ public class JsonVoteStorage implements VoteStorage {
     }
 
     @Override
-    public List<UUID> getTopVoters(int amount, int page) {
+    public List<PlayerVotes> getTopVoters(int amount, int page) {
         int skip = page * amount;
         rwl.readLock().lock();
         try {
@@ -152,7 +151,7 @@ public class JsonVoteStorage implements VoteStorage {
                     .sorted(Collections.reverseOrder(Comparator.comparing(Map.Entry::getValue)))
                     .skip(skip)
                     .limit(amount)
-                    .map(Map.Entry::getKey)
+                    .map(e -> new PlayerVotes(e.getKey(), e.getValue().votes))
                     .collect(Collectors.toList());
         } finally {
             rwl.readLock().unlock();

@@ -3,6 +3,7 @@ package io.minimum.minecraft.superbvote.storage;
 import com.google.common.base.Preconditions;
 import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -11,10 +12,7 @@ import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
-import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 @RequiredArgsConstructor
@@ -170,17 +168,18 @@ public class MysqlVoteStorage implements VoteStorage {
     }
 
     @Override
-    public List<UUID> getTopVoters(int amount, int page) {
+    public List<PlayerVotes> getTopVoters(int amount, int page) {
         int offset = page * amount;
         try (Connection connection = dbPool.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid FROM " + tableName + " ORDER BY votes DESC " +
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, votes FROM " + tableName + " ORDER BY votes DESC " +
                     "LIMIT " + amount + " OFFSET " + offset)) {
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    List<UUID> uuids = new ArrayList<>();
+                    List<PlayerVotes> records = new ArrayList<>();
                     while (resultSet.next()) {
-                        uuids.add(UUID.fromString(resultSet.getString(1)));
+                        UUID uuid = UUID.fromString(resultSet.getString(1));
+                        records.add(new PlayerVotes(uuid, resultSet.getInt(2)));
                     }
-                    return uuids;
+                    return records;
                 }
             }
         } catch (SQLException e) {

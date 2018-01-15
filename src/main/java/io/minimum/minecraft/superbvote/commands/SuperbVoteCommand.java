@@ -4,10 +4,7 @@ import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.migration.GAListenerMigration;
 import io.minimum.minecraft.superbvote.migration.Migration;
-import io.minimum.minecraft.superbvote.votes.SuperbPreVoteEvent;
-import io.minimum.minecraft.superbvote.votes.SuperbVoteEvent;
-import io.minimum.minecraft.superbvote.votes.Vote;
-import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import lombok.Data;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -127,15 +124,17 @@ public class SuperbVoteCommand implements CommandExecutor {
                         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
                             int c = SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration().getPerPage();
                             int from = c * page;
-                            List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(c, page);
-                            if (leaderboardAsUuids.isEmpty()) {
+                            List<PlayerVotes> leaderboard = SuperbVote.getPlugin().getVoteStorage().getTopVoters(c, page);
+                            if (leaderboard.isEmpty()) {
                                 sender.sendMessage(ChatColor.RED + "No entries found.");
                                 return;
                             }
                             SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration().getHeader().sendWithNothing(sender);
-                            for (int i = 0; i < leaderboardAsUuids.size(); i++) {
+                            for (int i = 0; i < leaderboard.size(); i++) {
                                 String posStr = Integer.toString(from + i + 1);
-                                sender.sendMessage(SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration().getEntryText().getWithOfflinePlayer(sender, leaderboardAsUuids.get(i))
+                                sender.sendMessage(SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration()
+                                        .getEntryText()
+                                        .getWithOfflinePlayer(sender, leaderboard.get(i).getUuid())
                                         .replaceAll("%num%", posStr));
                             }
                             int availablePages = SuperbVote.getPlugin().getVoteStorage().getPagesAvailable(c);
@@ -170,17 +169,17 @@ public class SuperbVoteCommand implements CommandExecutor {
                 }
 
                 Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
-                    List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(amt, 0);
-                    if (leaderboardAsUuids.isEmpty()) {
+                    List<PlayerVotes> leaderboard = SuperbVote.getPlugin().getVoteStorage().getTopVoters(amt, 0);
+                    if (leaderboard.isEmpty()) {
                         sender.sendMessage(ChatColor.RED + "No entries found.");
                         return;
                     }
-                    List<String> leaderboard = leaderboardAsUuids.stream()
-                            .map(leaderboardAsUuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(leaderboardAsUuid))
+                    List<String> translated = leaderboard.stream()
+                            .map(e -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(e.getUuid()))
                             .collect(Collectors.toList());
                     StringBuilder text = new StringBuilder();
                     for (int i = 0; i < leaderboard.size(); i++) {
-                        text.append(i + 1).append(". ").append(leaderboard.get(i)).append('\n');
+                        text.append(i + 1).append(". ").append(translated.get(i)).append(" - ").append(leaderboard.get(i).getVotes()).append('\n');
                     }
                     try {
                         String url = PasteSubmission.submitPaste(text.toString());

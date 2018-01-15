@@ -1,6 +1,7 @@
 package io.minimum.minecraft.superbvote.signboard;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 
@@ -22,7 +23,7 @@ public class TopPlayerSignFetcher implements Runnable {
         }
 
         // Fetch the players required.
-        List<UUID> topPlayers = SuperbVote.getPlugin().getVoteStorage().getTopVoters(toFetch.getAsInt(), 0);
+        List<PlayerVotes> topPlayers = SuperbVote.getPlugin().getVoteStorage().getTopVoters(toFetch.getAsInt(), 0);
 
         // We've done everything we can do asynchronously. Hand off to the synchronous update task.
         Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), new TopPlayerSignUpdater(toUpdate, topPlayers));

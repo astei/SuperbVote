@@ -1,6 +1,7 @@
 package io.minimum.minecraft.superbvote.scoreboard;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -33,22 +34,20 @@ public class ScoreboardHandler {
         if (!SuperbVote.getPlugin().getConfig().getString("leaderboard.display").equals("scoreboard")) {
             return;
         }
-        List<UUID> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(
+        List<PlayerVotes> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(
                 Math.min(16, SuperbVote.getPlugin().getConfig().getInt("leaderboard.scoreboard.max", 10)), 0);
-        List<String> leaderboard = leaderboardAsUuids.stream()
-                .map(uuid -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid))
+        List<String> leaderboardAsNames = leaderboardAsUuids.stream()
+                .map(ue -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(ue.getUuid()))
                 .collect(Collectors.toList());
-        if (leaderboard.isEmpty()) {
+        if (leaderboardAsNames.isEmpty()) {
             scoreboard.getEntries().stream().filter(s -> !s.equals("None found")).forEach(scoreboard::resetScores);
             objective.getScore("None found").setScore(1);
         } else {
-            scoreboard.getEntries().stream().filter(s -> !leaderboard.contains(s)).forEach(scoreboard::resetScores);
-            for (UUID uuid : leaderboardAsUuids) {
-                int votes = SuperbVote.getPlugin().getVoteStorage().getVotes(uuid);
-                String name = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid);
-                if (name == null) continue;
-
-                objective.getScore(name).setScore(votes);
+            scoreboard.getEntries().stream().filter(s -> !leaderboardAsNames.contains(s)).forEach(scoreboard::resetScores);
+            for (int i = 0; i < leaderboardAsUuids.size(); i++) {
+                PlayerVotes e = leaderboardAsUuids.get(i);
+                String name = leaderboardAsNames.get(i);
+                objective.getScore(name).setScore(e.getVotes());
             }
         }
     }

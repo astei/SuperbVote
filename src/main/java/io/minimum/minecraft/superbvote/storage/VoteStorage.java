@@ -1,5 +1,6 @@
 package io.minimum.minecraft.superbvote.storage;
 
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public interface VoteStorage {
 
     int getVotes(UUID player);
 
-    List<UUID> getTopVoters(int amount, int page);
+    List<PlayerVotes> getTopVoters(int amount, int page);
 
     int getPagesAvailable(int amount);
 
