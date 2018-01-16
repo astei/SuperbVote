@@ -38,7 +38,7 @@ public class RewardMatchers {
         } else if (chanceObject != null && chanceObject instanceof Integer) {
             SuperbVote.getPlugin().getLogger().warning("The 'chance' vote matcher will be switched to be based on percentages out of 100% in a future release. Use 'chance-fractional' to " +
                     "retain the current behavior, or migrate to a percentage matcher by specifying 'chance-percentage' in your configuration.");
-            if ((int) chanceFracObject < 1) {
+            if ((int) chanceObject < 1) {
                 SuperbVote.getPlugin().getLogger().severe("Fraction " + chanceObject + " is not valid; must be 1 or more.");
             } else {
                 matchers.add(new ChanceFractionalRewardMatcher((int) chanceObject));
