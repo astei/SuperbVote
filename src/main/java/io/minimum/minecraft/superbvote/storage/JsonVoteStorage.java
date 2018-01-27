@@ -37,7 +37,7 @@ public class JsonVoteStorage implements VoteStorage {
         boolean needMigrate = false;
         try (Reader reader = Files.newBufferedReader(saveTo)) {
             VotingFile vf = gson.fromJson(reader, VotingFile.class);
-            if (vf == null || vf.records == null || vf.records.isEmpty()) {
+            if (vf == null || vf.records == null) {
                 needMigrate = true;
             } else {
                 voteCounts.putAll(vf.records);
