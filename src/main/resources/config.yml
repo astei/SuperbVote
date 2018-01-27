@@ -2,6 +2,8 @@
 # A superb vote plugin made by Tux.
 #
 # https://github.com/minecrafter/SuperbVote/wiki
+
+# Once you've configured SuperbVote, add it to our official server list, CraftServers.net:
 # Official server list: https://www.craftservers.net/
 
 # Database configuration.
@@ -28,7 +30,8 @@ votes:
 
 # Rewards. This is the main section you will need to edit. Ordering is important.
 rewards:
-  # Example of matchers. See https://github.com/minecrafter/SuperbVote/wiki/Configuration#if for examples.
+  # Example of matchers. See https://github.com/minecrafter/SuperbVote/wiki/Configuration#if for a full list of available
+  # matchers.
   - if:
       permission: superbvote.test
       chance-pecentage: 5
