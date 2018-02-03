@@ -42,6 +42,7 @@ public class MysqlVoteStorage implements VoteStorage {
                         // This may speed up leaderboards
                         statement.executeUpdate("CREATE INDEX uuid_votes_idx ON " + tableName + " (uuid, votes)");
                     }
+                    isUpdated = true;
                 } else {
                     if (ver < TABLE_VERSION) {
                         SuperbVote.getPlugin().getLogger().log(Level.INFO, "Migrating database from version " + ver + " to " + TABLE_VERSION + ", this may take a while...");
