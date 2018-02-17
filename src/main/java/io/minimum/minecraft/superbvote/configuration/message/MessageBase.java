@@ -8,26 +8,17 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class MessageBase {
-    protected static final List<PlaceholderProvider> PROVIDER_LIST = ImmutableList.of(new SuperbVotePlaceholderProvider(),
+class MessageBase {
+    private static final List<PlaceholderProvider> PROVIDER_LIST = ImmutableList.of(new SuperbVotePlaceholderProvider(),
             new ClipsPlaceholderProvider());
 
-    protected String getAsBroadcast(String message, MessageContext context) {
-        Player onlineVoted = context.getPlayer().getPlayer();
+    String replace(String message, MessageContext context) {
+        String replaced = message;
         for (PlaceholderProvider provider : PROVIDER_LIST) {
             if (provider.canUse()) {
-                message = provider.apply(message, context);
+                replaced = provider.apply(replaced, context);
             }
         }
-        return message;
-    }
-
-    protected String getAsReminder(String message, MessageContext context) {
-        for (PlaceholderProvider provider : PROVIDER_LIST) {
-            if (provider.canUse()) {
-                message = provider.apply(message, context);
-            }
-        }
-        return message;
+        return replaced;
     }
 }

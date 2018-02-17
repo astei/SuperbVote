@@ -11,7 +11,7 @@ public class SuperbVotePlaceholderProvider implements PlaceholderProvider {
                 .replace("%uuid%", context.getPlayer().getUniqueId().toString());
         if (context.getVote().isPresent()) {
             Vote vote = context.getVote().get();
-            base = message.replace("%service%", vote.getServiceName());
+            base = base.replace("%service%", vote.getServiceName());
         }
         return base;
     }
@@ -19,10 +19,5 @@ public class SuperbVotePlaceholderProvider implements PlaceholderProvider {
     @Override
     public boolean canUse() {
         return true; // Only depends on SuperbVote components.
-    }
-
-    @Override
-    public boolean canUseForOfflinePlayers() {
-        return true;
     }
 }

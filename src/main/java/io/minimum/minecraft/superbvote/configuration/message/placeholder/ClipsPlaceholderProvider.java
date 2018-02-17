@@ -17,9 +17,4 @@ public class ClipsPlaceholderProvider implements PlaceholderProvider {
     public boolean canUse() {
         return Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
     }
-
-    @Override
-    public boolean canUseForOfflinePlayers() {
-        return false;
-    }
 }

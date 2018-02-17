@@ -28,4 +28,13 @@ public class MessageContext {
     public OfflinePlayer getPlayer() {
         return player;
     }
+
+    @Override
+    public String toString() {
+        return "MessageContext{" +
+                "vote=" + vote +
+                ", voteRecord=" + voteRecord +
+                ", player=" + player +
+                '}';
+    }
 }
