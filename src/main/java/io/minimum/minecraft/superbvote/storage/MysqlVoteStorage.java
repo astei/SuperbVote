@@ -23,7 +23,8 @@ import java.util.logging.Level;
 @RequiredArgsConstructor
 public class MysqlVoteStorage implements VoteStorage {
     public static final int TABLE_VERSION_2 = 2;
-    public static final int TABLE_VERSION = TABLE_VERSION_2;
+    public static final int TABLE_VERSION_3 = 3;
+    public static final int TABLE_VERSION_CURRENT = TABLE_VERSION_3;
 
     private final HikariPool dbPool;
     private final String tableName;
@@ -40,18 +41,24 @@ public class MysqlVoteStorage implements VoteStorage {
             try (ResultSet t = connection.getMetaData().getTables(null, null, tableName, null)) {
                 if (!t.next()) {
                     try (Statement statement = connection.createStatement()) {
-                        statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT, last_vote TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+                        statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT, last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
                         // This may speed up leaderboards
                         statement.executeUpdate("CREATE INDEX uuid_votes_idx ON " + tableName + " (uuid, votes)");
                     }
                     isUpdated = true;
                 } else {
-                    if (ver < TABLE_VERSION) {
-                        SuperbVote.getPlugin().getLogger().log(Level.INFO, "Migrating database from version " + ver + " to " + TABLE_VERSION + ", this may take a while...");
+                    if (ver < TABLE_VERSION_CURRENT) {
+                        SuperbVote.getPlugin().getLogger().log(Level.INFO, "Migrating database from version " + ver + " to " + TABLE_VERSION_CURRENT + ", this may take a while...");
                         // We may need to add in the new last_vote column
                         if (ver < TABLE_VERSION_2) {
                             try (Statement statement = connection.createStatement()) {
                                 statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN last_vote TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                            }
+                            isUpdated = true;
+                        }
+                        if (ver < TABLE_VERSION_3) {
+                            try (Statement statement = connection.createStatement()) {
+                                statement.executeUpdate("ALTER TABLE " + tableName + " CHANGE last_vote last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
                             }
                             isUpdated = true;
                         }
@@ -63,7 +70,7 @@ public class MysqlVoteStorage implements VoteStorage {
         }
 
         if (isUpdated) {
-            dbInfo.set("db_version", TABLE_VERSION);
+            dbInfo.set("db_version", TABLE_VERSION_CURRENT);
             try {
                 dbInfo.save(new File(SuperbVote.getPlugin().getDataFolder(), "db_version.yml"));
             } catch (IOException e) {
@@ -90,7 +97,7 @@ public class MysqlVoteStorage implements VoteStorage {
         try (Connection connection = dbPool.getConnection()) {
             if (knownName != null) {
                 try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes) VALUES (?, ?, 1)" +
-                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_name = ?")) {
+                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_name = ?, last_voted = CURRENT_TIMESTAMP()")) {
                     statement.setString(1, player.toString());
                     statement.setString(2, knownName);
                     statement.setString(3, knownName);
@@ -98,7 +105,7 @@ public class MysqlVoteStorage implements VoteStorage {
                 }
             } else {
                 try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes) VALUES (?, NULL, 1)" +
-                        " ON DUPLICATE KEY UPDATE votes = votes + 1")) {
+                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_voted = CURRENT_TIMESTAMP()")) {
                     statement.setString(1, player.toString());
                     statement.executeUpdate();
                 }
