@@ -74,7 +74,7 @@ public class TopPlayerSignListener implements Listener {
             if (event.getLine(0).startsWith("[topvoter]") && event.getPlayer().hasPermission("superbvote.managesigns")) {
                 int p;
                 try {
-                    p = Integer.parseInt(event.getLine(1));
+                    p = Integer.parseInt(event.getLine(1).replaceAll("[^\\d]", ""));
                 } catch (NumberFormatException | IndexOutOfBoundsException e) {
                     event.setCancelled(true);
                     event.getPlayer().sendMessage(ChatColor.RED + "The second line needs to be a number, indicating the position on the leaderboard this sign should display.");
