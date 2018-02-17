@@ -101,4 +101,8 @@ public class SuperbVote extends JavaPlugin {
         getServer().getScheduler().runTaskAsynchronously(this, getScoreboardHandler()::doPopulate);
         getCommand("vote").setExecutor(configuration.getVoteCommand());
     }
+
+    public ClassLoader _exposeClassLoader() {
+        return getClassLoader();
+    }
 }

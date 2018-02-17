@@ -104,14 +104,16 @@ public class RewardMatchers {
 
         // groups: <groups> - Requires Vault
         Optional<Permission> vaultPermission = getVaultPermissions();
+        String group = section.getString("group");
+        List<String> groups = section.getStringList("groups");
         if (vaultPermission.isPresent()) {
-            String group = section.getString("group");
-            List<String> groups = section.getStringList("groups");
             if (group != null && !group.isEmpty()) {
                 matchers.add(new VaultGroupRewardMatcher(vaultPermission.get(), ImmutableList.of(group)));
             } else if (group == null && !groups.isEmpty()) {
                 matchers.add(new VaultGroupRewardMatcher(vaultPermission.get(), groups));
             }
+        } else if ((group != null && !group.isEmpty()) || !groups.isEmpty()) {
+            SuperbVote.getPlugin().getLogger().warning("You can't use the 'group' or 'groups' matcher without having Vault installed.");
         }
 
         return matchers;
