@@ -104,7 +104,7 @@ public class MysqlVoteStorage implements VoteStorage {
                 }
             }
         } catch (SQLException e) {
-            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to add vote for " + player.toString(), e);
+            throw new RuntimeException("Unable to add vote for " + player.toString(), e);
         }
     }
 
@@ -120,26 +120,28 @@ public class MysqlVoteStorage implements VoteStorage {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to add vote for " + player.toString(), e);
+            throw new RuntimeException("Unable to update name for " + player.toString(), e);
         }
     }
 
     @Override
-    public void setVotes(UUID player, int votes) {
+    public void setVotes(UUID player, int votes, long ts) {
         if (readOnly)
             return;
 
         Preconditions.checkNotNull(player, "player");
         try (Connection connection = dbPool.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, votes) VALUES (?, ?)" +
-                    " ON DUPLICATE KEY UPDATE votes = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, votes, last_vote) VALUES (?, ?, ?)" +
+                    " ON DUPLICATE KEY UPDATE votes = ?, last_vote = ?")) {
                 statement.setString(1, player.toString());
                 statement.setInt(2, votes);
-                statement.setInt(3, votes);
+                statement.setTimestamp(3, new Timestamp(ts));
+                statement.setInt(4, votes);
+                statement.setTimestamp(5, new Timestamp(ts));
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to set votes for " + player.toString(), e);
+            throw new RuntimeException("Unable to set votes for " + player.toString(), e);
         }
     }
 

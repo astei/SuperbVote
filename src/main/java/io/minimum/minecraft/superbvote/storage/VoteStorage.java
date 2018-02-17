@@ -11,7 +11,11 @@ public interface VoteStorage {
 
     void addVote(UUID player);
 
-    void setVotes(UUID player, int votes);
+    default void setVotes(UUID player, int votes) {
+        setVotes(player, votes, System.currentTimeMillis());
+    }
+
+    void setVotes(UUID player, int votes, long ts);
 
     void clearVotes();
 

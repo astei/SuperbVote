@@ -65,12 +65,13 @@ public class GAListenerMigration implements Migration {
             listener.onStart(records);
             int divisor = ProgressUtil.findBestDivisor(records);
             int currentIdx = 0;
-            try (PreparedStatement statement = connection.prepareStatement("SELECT UUID, votes FROM " + prefix + "GALTotals");
+            try (PreparedStatement statement = connection.prepareStatement("SELECT UUID, votes, lastvoted FROM " + prefix + "GALTotals");
                  ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
                     UUID uuid = UUID.fromString(rs.getString(1));
                     int votes = rs.getInt(2);
-                    SuperbVote.getPlugin().getVoteStorage().setVotes(uuid, votes);
+                    long lastVoted = rs.getLong(3);
+                    SuperbVote.getPlugin().getVoteStorage().setVotes(uuid, votes, lastVoted);
 
                     currentIdx++;
                     if (currentIdx % divisor == 0) {

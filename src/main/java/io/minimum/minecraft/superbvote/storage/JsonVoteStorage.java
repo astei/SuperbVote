@@ -106,7 +106,7 @@ public class JsonVoteStorage implements VoteStorage {
     }
 
     @Override
-    public void setVotes(UUID player, int votes) {
+    public void setVotes(UUID player, int votes, long ts) {
         Preconditions.checkNotNull(player, "player");
         Preconditions.checkArgument(votes >= 0, "votes out of bound");
         rwl.writeLock().lock();
@@ -114,9 +114,10 @@ public class JsonVoteStorage implements VoteStorage {
             if (votes == 0) {
                 voteCounts.remove(player);
             } else {
-                PlayerRecord rec = voteCounts.putIfAbsent(player, new PlayerRecord(votes));
+                PlayerRecord rec = voteCounts.putIfAbsent(player, new PlayerRecord(votes, ts));
                 if (rec != null) {
                     rec.votes = votes;
+                    rec.lastVoted = ts;
                 }
             }
         } finally {
