@@ -72,6 +72,12 @@ public class RewardMatchers {
             matchers.add(new CumulativeVotesRewardMatcher((int) cumulativeObject));
         }
 
+        // every-cumulative-votes: <votes>
+        Object everyCumulativeObject = section.get("every-cumulative-votes");
+        if (everyCumulativeObject != null && everyCumulativeObject instanceof Integer) {
+            matchers.add(new CumulativeVotesEveryRewardMatcher((int) everyCumulativeObject));
+        }
+
         // script: <path>
         String script = section.getString("script");
         if (script != null) {
