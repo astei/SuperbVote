@@ -9,7 +9,6 @@ import io.minimum.minecraft.superbvote.signboard.TopPlayerSignStorage;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.VoteCooldownHandler;
-import io.minimum.minecraft.superbvote.votes.SuperbVoteHandler;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
 import io.minimum.minecraft.superbvote.votes.VoteReminder;
 import lombok.Getter;
@@ -65,7 +64,6 @@ public class SuperbVote extends JavaPlugin {
         getCommand("vote").setExecutor(configuration.getVoteCommand());
 
         getServer().getPluginManager().registerEvents(new SuperbVoteListener(), this);
-        getServer().getPluginManager().registerEvents(new SuperbVoteHandler(), this);
         getServer().getPluginManager().registerEvents(new TopPlayerSignListener(), this);
         getServer().getScheduler().runTaskTimerAsynchronously(this, voteStorage::save, 20, 20 * 30);
         getServer().getScheduler().runTaskTimerAsynchronously(this, queuedVotes::save, 20, 20 * 30);
