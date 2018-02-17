@@ -17,6 +17,11 @@ public class SuperbVoteJsonFileMigration implements Migration {
     private final JsonParser parser = new JsonParser();
 
     @Override
+    public String getName() {
+        return "SuperbVote JSON storage";
+    }
+
+    @Override
     public void execute(ProgressListener listener) {
         File file = new File(SuperbVote.getPlugin().getDataFolder(), SuperbVote.getPlugin().getConfig().getString("storage.json.file"));
         JsonObject object;

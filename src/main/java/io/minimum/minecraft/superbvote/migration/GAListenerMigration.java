@@ -10,6 +10,11 @@ import java.util.UUID;
 
 public class GAListenerMigration implements Migration {
     @Override
+    public String getName() {
+        return "GAListener";
+    }
+
+    @Override
     public void execute(ProgressListener listener) {
         File galRoot = new File(SuperbVote.getPlugin().getDataFolder(), ".." + File.separator + "GAListener");
         File galConfig = new File(galRoot, "config.yml");

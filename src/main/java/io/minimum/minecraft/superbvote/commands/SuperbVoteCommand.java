@@ -37,12 +37,12 @@ public class SuperbVoteCommand implements CommandExecutor {
 
         if (sender.hasPermission("superbvote.top") || sender.hasPermission("superbvote.admin")) {
             sender.sendMessage(ChatColor.GRAY + ChatColor.BOLD.toString() + "/sv top [page]");
-            sender.sendMessage(ChatColor.GRAY + "Shows the top players.");
+            sender.sendMessage(ChatColor.GRAY + "Shows the top players on the voting leaderboard.");
         }
 
         if (sender.hasPermission("superbvote.admin")) {
             sender.sendMessage(ChatColor.GRAY + ChatColor.BOLD.toString() + "/sv pastetop <amount>");
-            sender.sendMessage(ChatColor.GRAY + "Pastes the top [amount] players.");
+            sender.sendMessage(ChatColor.GRAY + "Pastes the top [amount] players on the voting leaderboard.");
 
             sender.sendMessage(ChatColor.GRAY + ChatColor.BOLD.toString() + "/sv fakevote <player> [service]");
             sender.sendMessage(ChatColor.GRAY + "Issues a fake vote for the specified player.");
@@ -87,7 +87,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                         uuid = Bukkit.getOfflinePlayer(args[1]).getUniqueId();
                         name = args[1];
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Need to specify at most one arguments.");
+                        sender.sendMessage(ChatColor.RED + "Need to specify at most one argument.");
                         sender.sendMessage(ChatColor.RED + "/sv votes [player]");
                         sender.sendMessage(ChatColor.RED + "Checks your vote amount, or the specified player's.");
                         return;
@@ -103,7 +103,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                 if (args.length > 2) {
                     sender.sendMessage(ChatColor.RED + "Need to specify at most one argument.");
                     sender.sendMessage(ChatColor.RED + "/sv top [page]");
-                    sender.sendMessage(ChatColor.RED + "Shows the top players.");
+                    sender.sendMessage(ChatColor.RED + "Shows the top players on the voting leaderboard.");
                     return true;
                 }
                 int page;
@@ -236,25 +236,37 @@ public class SuperbVoteCommand implements CommandExecutor {
                     sender.sendMessage(ChatColor.RED + "You can't do this.");
                     return true;
                 }
-                ConfirmingCommand confirm = wantToClear.remove(sender.getName());
-                if (confirm != null) {
-                    confirm.getCancellationTask().cancel();
+
+                sender.sendMessage("");
+                sender.sendMessage(ChatColor.DARK_RED + ChatColor.BOLD.toString() + "DANGER DANGER DANGER DANGER DANGER DANGER");
+                sender.sendMessage("");
+                sender.sendMessage(ChatColor.RED + "This command will " + ChatColor.BOLD + "irreversibly" + ChatColor.RESET + ChatColor.RED + " clear all your server's votes!");
+                sender.sendMessage(ChatColor.RED + "If you want to continue, use the command /sv reallyclear in the next 15 seconds.");
+                sender.sendMessage(ChatColor.RED + ChatColor.BOLD.toString() + "You have been warned.");
+                sender.sendMessage("");
+                sender.sendMessage(ChatColor.DARK_RED + ChatColor.BOLD.toString() + "DANGER DANGER DANGER DANGER DANGER DANGER");
+                sender.sendMessage("");
+
+                final String name = sender.getName();
+                BukkitTask task = Bukkit.getScheduler().runTaskLater(SuperbVote.getPlugin(), () -> wantToClear.remove(name), 15 * 20);
+                wantToClear.put(sender.getName(), new ConfirmingCommand(task));
+
+                return true;
+            case "reallyclear":
+                if (!sender.hasPermission("superbvote.admin")) {
+                    sender.sendMessage(ChatColor.RED + "You can't do this.");
+                    return true;
+                }
+                ConfirmingCommand confirm1 = wantToClear.remove(sender.getName());
+                if (confirm1 != null) {
+                    confirm1.getCancellationTask().cancel();
                     SuperbVote.getPlugin().getVoteStorage().clearVotes();
                     SuperbVote.getPlugin().getQueuedVotes().clearVotes();
-                    sender.sendMessage(ChatColor.GREEN + "All votes cleared.");
+                    sender.sendMessage(ChatColor.GREEN + "All votes cleared from the database.");
                 } else {
-                    sender.sendMessage(ChatColor.DARK_RED + ChatColor.BOLD.toString() + "DANGER DANGER DANGER DANGER DANGER DANGER");
-                    sender.sendMessage("");
-                    sender.sendMessage(ChatColor.RED + "This command " + ChatColor.BOLD + "irreversibly" + ChatColor.RESET + ChatColor.RED + " clears your votes!");
-                    sender.sendMessage(ChatColor.RED + "If you want to continue, please repeat the command.");
-                    sender.sendMessage(ChatColor.RED + "This chance expires in 15 seconds.");
-                    sender.sendMessage("");
-                    sender.sendMessage(ChatColor.DARK_RED + ChatColor.BOLD.toString() + "DANGER DANGER DANGER DANGER DANGER DANGER");
-
-                    final String name = sender.getName();
-                    BukkitTask task = Bukkit.getScheduler().runTaskLater(SuperbVote.getPlugin(), () -> wantToClear.remove(name), 15 * 20);
-                    wantToClear.put(sender.getName(), new ConfirmingCommand(task));
+                    sender.sendMessage(ChatColor.RED + "You took a wrong turn. Try again using /sv clear.");
                 }
+
                 return true;
             case "migrate":
                 if (!sender.hasPermission("superbvote.admin")) {
@@ -289,7 +301,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                         migration.execute(new ProgressListener() {
                             @Override
                             public void onStart(int records) {
-                                SuperbVote.getPlugin().getLogger().info("Converting " + records + " records to SuperbVote...");
+                                SuperbVote.getPlugin().getLogger().info("Converting " + records + " records from " + migration.getName() + " to SuperbVote...");
                             }
 
                             @Override
@@ -304,7 +316,7 @@ public class SuperbVoteCommand implements CommandExecutor {
 
                             @Override
                             public void onFinish(int records) {
-                                SuperbVote.getPlugin().getLogger().info("Converted all " + records + " records to SuperbVote!");
+                                SuperbVote.getPlugin().getLogger().info("Successfully converted all " + records + " records to SuperbVote!");
                             }
                         });
                         sender.sendMessage(ChatColor.GREEN + "Migration succeeded!");
