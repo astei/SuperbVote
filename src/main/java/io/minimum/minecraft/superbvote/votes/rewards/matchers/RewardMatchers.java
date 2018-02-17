@@ -118,6 +118,9 @@ public class RewardMatchers {
     }
 
     private static Optional<Permission> getVaultPermissions() {
+        if (Bukkit.getServer().getPluginManager().getPlugin("Vault") == null) {
+            return Optional.empty();
+        }
         RegisteredServiceProvider<Permission> rsp = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
         if (rsp != null) {
             return Optional.of(rsp.getProvider());

@@ -36,7 +36,7 @@ public class SuperbVoteJsonFileMigration implements Migration {
             divisor = ProgressUtil.findBestDivisor(records);
             listener.onStart(records);
             int currentIdx = 0;
-            for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+            for (Map.Entry<String, JsonElement> entry : recordObj.entrySet()) {
                 int votes = entry.getValue().getAsJsonObject().getAsJsonPrimitive("votes").getAsInt();
                 SuperbVote.getPlugin().getVoteStorage().setVotes(UUID.fromString(entry.getKey()), votes);
                 currentIdx++;

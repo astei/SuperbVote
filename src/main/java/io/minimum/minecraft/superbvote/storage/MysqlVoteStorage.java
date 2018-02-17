@@ -226,20 +226,38 @@ public class MysqlVoteStorage implements VoteStorage {
 
     @Override
     public List<PlayerVotes> getAllPlayersWithNoVotesToday(List<UUID> onlinePlayers) {
-        List<PlayerVotes> players = new ArrayList<>();
+        if (onlinePlayers.isEmpty()) {
+            return ImmutableList.of();
+        }
+        List<PlayerVotes> votes = new ArrayList<>();
         try (Connection connection = dbPool.getConnection()) {
-            String valueStatement = Joiner.on(", ").join(Collections.nCopies(players.size(), "?"));
-            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, votes FROM " + tableName + " WHERE uuid IN " + valueStatement + " AND DATE(last_vote) != CURRENT_DATE()")) {
-                for (int i = 0; i < players.size(); i++) {
-                    statement.setString(i + 1, players.get(i).toString());
+            String valueStatement = Joiner.on(", ").join(Collections.nCopies(onlinePlayers.size(), "?"));
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, votes, (DATE(last_vote) = CURRENT_DATE()) AS has_voted_today FROM " + tableName + " WHERE uuid IN (" + valueStatement + ")")) {
+                for (int i = 0; i < onlinePlayers.size(); i++) {
+                    statement.setString(i + 1, onlinePlayers.get(i).toString());
                 }
+                List<UUID> found = new ArrayList<>();
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        players.add(new PlayerVotes(UUID.fromString(resultSet.getString(1)), resultSet.getInt(2), PlayerVotes.Type.CURRENT));
+                        System.out.println(resultSet.getString(1) + ", " + resultSet.getInt(2) + ", voted? " + resultSet.getBoolean(3));
+                        UUID uuid = UUID.fromString(resultSet.getString(1));
+                        found.add(uuid);
+                        if (resultSet.getBoolean(3)) {
+                            continue; // already voted today
+                        }
+                        PlayerVotes pv = new PlayerVotes(UUID.fromString(resultSet.getString(1)), resultSet.getInt(2), PlayerVotes.Type.CURRENT);
+                        votes.add(pv);
                     }
                 }
+
+                // We may have players without a voting record. Add these missing players.
+                List<UUID> missing = new ArrayList<>(onlinePlayers);
+                missing.removeAll(found);
+                for (UUID uuid : missing) {
+                    votes.add(new PlayerVotes(uuid, 0, PlayerVotes.Type.CURRENT));
+                }
             }
-            return players;
+            return votes;
         } catch (SQLException e) {
             SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to batch-get votes", e);
             return ImmutableList.of();
