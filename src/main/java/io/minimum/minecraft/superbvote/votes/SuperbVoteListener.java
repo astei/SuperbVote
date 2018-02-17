@@ -86,10 +86,13 @@ public class SuperbVoteListener implements Listener {
             }
 
             // Process queued votes.
-            PlayerVotes dummyPv = new PlayerVotes(event.getPlayer().getUniqueId(), 0, PlayerVotes.Type.CURRENT); // we don't broadcast/send messages for queued votes
+            PlayerVotes pv = SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId());
             List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
             if (!votes.isEmpty()) {
-                votes.forEach(v -> processVote(dummyPv, v, false, false, true));
+                for (Vote vote : votes) {
+                    processVote(pv, vote, false, false, true);
+                    pv = new PlayerVotes(pv.getUuid(), pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
+                }
                 afterVoteProcessing();
             }
 
@@ -97,9 +100,7 @@ public class SuperbVoteListener implements Listener {
             if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join") &&
                     event.getPlayer().hasPermission("superbvote.notify") &&
                     !SuperbVote.getPlugin().getVoteStorage().hasVotedToday(event.getPlayer().getUniqueId())) {
-                MessageContext context = new MessageContext(null,
-                        SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId()),
-                        event.getPlayer());
+                MessageContext context = new MessageContext(null, pv, event.getPlayer());
                 SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer(), context);
             }
         });
