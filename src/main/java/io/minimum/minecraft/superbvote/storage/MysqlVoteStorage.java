@@ -239,7 +239,6 @@ public class MysqlVoteStorage implements VoteStorage {
                 List<UUID> found = new ArrayList<>();
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        System.out.println(resultSet.getString(1) + ", " + resultSet.getInt(2) + ", voted? " + resultSet.getBoolean(3));
                         UUID uuid = UUID.fromString(resultSet.getString(1));
                         found.add(uuid);
                         if (resultSet.getBoolean(3)) {
