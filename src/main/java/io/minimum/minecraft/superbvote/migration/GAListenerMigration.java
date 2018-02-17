@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class GAListenerMigration implements Migration {
     @Override
-    public void execute() {
+    public void execute(ProgressListener listener) {
         File galRoot = new File(SuperbVote.getPlugin().getDataFolder(), ".." + File.separator + "GAListener");
         File galConfig = new File(galRoot, "config.yml");
 
@@ -46,14 +46,35 @@ public class GAListenerMigration implements Migration {
             throw new RuntimeException("Unable to open connection to GAListener DB", e);
         }
 
-        try (PreparedStatement statement = connection.prepareStatement("SELECT UUID, votes FROM " + prefix + "GALTotals");
-             ResultSet rs = statement.executeQuery()) {
-            while (rs.next()) {
-                UUID uuid = UUID.fromString(rs.getString(1));
-                int votes = rs.getInt(2);
-
-                SuperbVote.getPlugin().getVoteStorage().setVotes(uuid, votes);
+        try {
+            // Find out how many records we have to convert.
+            int records = 0;
+            try (PreparedStatement statement = connection.prepareStatement("SELECT COUNT(UUID) FROM " + prefix + "GALTotals");
+                 ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    records = rs.getInt(1);
+                }
             }
+
+            // Actually migrate the records.
+            listener.onStart(records);
+            int divisor = ProgressUtil.findBestDivisor(records);
+            int currentIdx = 0;
+            try (PreparedStatement statement = connection.prepareStatement("SELECT UUID, votes FROM " + prefix + "GALTotals");
+                 ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    UUID uuid = UUID.fromString(rs.getString(1));
+                    int votes = rs.getInt(2);
+                    SuperbVote.getPlugin().getVoteStorage().setVotes(uuid, votes);
+
+                    currentIdx++;
+                    if (currentIdx % divisor == 0) {
+                        listener.onRecordBatch(currentIdx, records);
+                    }
+                }
+            }
+
+            listener.onFinish(records);
         } catch (SQLException e) {
             throw new RuntimeException("Unable to migrate database", e);
         } finally {

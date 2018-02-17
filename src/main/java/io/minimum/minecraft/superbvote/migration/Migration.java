@@ -1,5 +1,5 @@
 package io.minimum.minecraft.superbvote.migration;
 
 public interface Migration {
-    void execute();
+    void execute(ProgressListener listener);
 }
