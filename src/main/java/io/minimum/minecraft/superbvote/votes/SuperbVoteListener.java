@@ -3,7 +3,9 @@ package io.minimum.minecraft.superbvote.votes;
 import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.commands.SuperbVoteCommand;
+import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -38,6 +40,8 @@ public class SuperbVoteListener implements Listener {
                 caseCorrected = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid);
             }
 
+            PlayerVotes pvCurrent = SuperbVote.getPlugin().getVoteStorage().getVotes(uuid);
+            PlayerVotes pv = new PlayerVotes(uuid, pvCurrent.getVotes(), PlayerVotes.Type.FUTURE);
             Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(),
                     event.getVote().getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE), worldName, new Date());
 
@@ -49,19 +53,21 @@ public class SuperbVoteListener implements Listener {
                 }
             }
 
-            processVote(vote, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.enabled"),
+            processVote(pv, vote, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.enabled"),
                     onlinePlayer == null && SuperbVote.getPlugin().getConfiguration().requirePlayersOnline(),
                     false);
         });
     }
 
-    private void processVote(Vote vote, boolean broadcast, boolean queue, boolean queued) {
-        List<VoteReward> bestRewards = SuperbVote.getPlugin().getConfiguration().getBestRewards(vote);
+    private void processVote(PlayerVotes pv, Vote vote, boolean broadcast, boolean queue, boolean wasQueued) {
+        List<VoteReward> bestRewards = SuperbVote.getPlugin().getConfiguration().getBestRewards(vote, pv);
         SuperbPreVoteEvent preVoteEvent = new SuperbPreVoteEvent(vote, bestRewards);
         if (queue) {
             preVoteEvent.setResult(SuperbPreVoteEvent.Result.QUEUE_VOTE);
         }
         Bukkit.getPluginManager().callEvent(preVoteEvent);
+
+        MessageContext context = new MessageContext(vote, pv, Bukkit.getOfflinePlayer(vote.getUuid()));
 
         switch (preVoteEvent.getResult()) {
             case PROCESS_VOTE:
@@ -73,9 +79,10 @@ public class SuperbVoteListener implements Listener {
                     SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
                 }
 
-                for (VoteReward reward : preVoteEvent.getVoteRewards()) {
-                    reward.broadcastVote(vote, !queued && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.message-player"),
-                            broadcast && !queued);
+                if (!wasQueued) {
+                    for (VoteReward reward : preVoteEvent.getVoteRewards()) {
+                        reward.broadcastVote(context, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.message-player"), broadcast);
+                    }
                 }
 
                 Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new SuperbVoteEvent(vote, preVoteEvent.getVoteRewards())));
@@ -83,7 +90,7 @@ public class SuperbVoteListener implements Listener {
             case QUEUE_VOTE:
                 SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Queuing vote from " + vote.getName() + " to be run later");
                 for (VoteReward reward : preVoteEvent.getVoteRewards()) {
-                    reward.broadcastVote(vote, false, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued"));
+                    reward.broadcastVote(context, false, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued"));
                 }
                 SuperbVote.getPlugin().getQueuedVotes().addVote(vote);
                 break;
@@ -102,14 +109,18 @@ public class SuperbVoteListener implements Listener {
             }
 
             // Process queued votes.
+            PlayerVotes dummyPv = new PlayerVotes(event.getPlayer().getUniqueId(), 0, PlayerVotes.Type.CURRENT); // we don't broadcast/send messages for queued votes
             List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
-            votes.forEach(v -> processVote(v, false, false, true));
+            votes.forEach(v -> processVote(dummyPv, v, false, false, true));
 
             // Remind players to vote.
             if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join") &&
                     event.getPlayer().hasPermission("superbvote.notify") &&
                     !SuperbVote.getPlugin().getVoteStorage().hasVotedToday(event.getPlayer().getUniqueId())) {
-                SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer());
+                MessageContext context = new MessageContext(null,
+                        SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId()),
+                        event.getPlayer());
+                SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer(), context);
             }
         });
     }

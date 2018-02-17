@@ -3,7 +3,9 @@ package io.minimum.minecraft.superbvote.storage;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface VoteStorage {
@@ -15,13 +17,15 @@ public interface VoteStorage {
 
     void clearVotes();
 
-    int getVotes(UUID player);
+    PlayerVotes getVotes(UUID player);
 
     List<PlayerVotes> getTopVoters(int amount, int page);
 
     int getPagesAvailable(int amount);
 
     boolean hasVotedToday(UUID player);
+
+    List<PlayerVotes> getAllPlayersWithNoVotesToday(List<UUID> onlinePlayers);
 
     void save();
 }

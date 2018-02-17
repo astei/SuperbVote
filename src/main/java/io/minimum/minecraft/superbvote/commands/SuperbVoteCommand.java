@@ -2,6 +2,7 @@ package io.minimum.minecraft.superbvote.commands;
 
 import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.migration.GAListenerMigration;
 import io.minimum.minecraft.superbvote.migration.Migration;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
@@ -88,7 +89,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                         sender.sendMessage(ChatColor.RED + "Checks your vote amount, or the specified player's.");
                         return;
                     }
-                    sender.sendMessage(ChatColor.GREEN + name + " has " + SuperbVote.getPlugin().getVoteStorage().getVotes(uuid) + " votes.");
+                    sender.sendMessage(ChatColor.GREEN + name + " has " + SuperbVote.getPlugin().getVoteStorage().getVotes(uuid).getVotes() + " votes.");
                 });
                 return true;
             case "top":
@@ -134,7 +135,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                                 String posStr = Integer.toString(from + i + 1);
                                 sender.sendMessage(SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration()
                                         .getEntryText()
-                                        .getWithOfflinePlayer(sender, leaderboard.get(i))
+                                        .getWithOfflinePlayer(sender, new MessageContext(null, leaderboard.get(i), Bukkit.getOfflinePlayer(leaderboard.get(i).getUuid())))
                                         .replaceAll("%num%", posStr));
                             }
                             int availablePages = SuperbVote.getPlugin().getVoteStorage().getPagesAvailable(c);

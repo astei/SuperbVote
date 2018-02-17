@@ -14,20 +14,20 @@ public class MessageBase {
     protected static final List<PlaceholderProvider> PROVIDER_LIST = ImmutableList.of(new SuperbVotePlaceholderProvider(),
             new ClipsPlaceholderProvider());
 
-    protected String getAsBroadcast(String message, Vote vote) {
-        Player onlineVoted = Bukkit.getPlayerExact(vote.getName());
+    protected String getAsBroadcast(String message, MessageContext context) {
+        Player onlineVoted = context.getPlayer().getPlayer();
         for (PlaceholderProvider provider : PROVIDER_LIST) {
             if (provider.canUse()) {
-                message = provider.applyForBroadcast(onlineVoted, message, vote);
+                message = provider.apply(message, context);
             }
         }
         return message;
     }
 
-    protected String getAsReminder(String message, Player player) {
+    protected String getAsReminder(String message, MessageContext context) {
         for (PlaceholderProvider provider : PROVIDER_LIST) {
             if (provider.canUse()) {
-                message = provider.applyForReminder(player, message);
+                message = provider.apply(message, context);
             }
         }
         return message;

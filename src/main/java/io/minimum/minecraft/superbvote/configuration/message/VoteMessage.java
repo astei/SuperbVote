@@ -4,7 +4,7 @@ import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.entity.Player;
 
 public interface VoteMessage {
-    void sendAsBroadcast(Player player, Vote vote);
+    void sendAsBroadcast(Player player, MessageContext context);
 
-    void sendAsReminder(Player player);
+    void sendAsReminder(Player player, MessageContext context);
 }

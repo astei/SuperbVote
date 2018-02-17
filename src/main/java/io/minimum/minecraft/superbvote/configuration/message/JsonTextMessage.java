@@ -12,14 +12,14 @@ public class JsonTextMessage extends MessageBase implements VoteMessage {
     }
 
     @Override
-    public void sendAsBroadcast(Player player, Vote vote) {
-        String jsonString = getAsBroadcast(message, vote);
+    public void sendAsBroadcast(Player player, MessageContext context) {
+        String jsonString = getAsBroadcast(message, context);
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + jsonString);
     }
 
     @Override
-    public void sendAsReminder(Player player) {
-        String jsonString = getAsReminder(message, player);
+    public void sendAsReminder(Player player, MessageContext context) {
+        String jsonString = getAsReminder(message, context);
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + jsonString);
     }
 }

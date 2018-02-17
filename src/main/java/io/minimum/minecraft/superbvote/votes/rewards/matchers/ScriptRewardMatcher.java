@@ -1,6 +1,7 @@
 package io.minimum.minecraft.superbvote.votes.rewards.matchers;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
 import javax.script.Invocable;
@@ -27,7 +28,7 @@ public class ScriptRewardMatcher implements RewardMatcher {
     }
 
     @Override
-    public boolean matches(Vote vote) {
+    public boolean matches(Vote vote, PlayerVotes pv) {
         Invocable invocable = (Invocable) engine;
         try {
             Object result = invocable.invokeFunction("matchVote", vote);

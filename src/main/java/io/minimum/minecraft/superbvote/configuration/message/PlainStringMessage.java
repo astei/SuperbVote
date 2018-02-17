@@ -18,13 +18,13 @@ public class PlainStringMessage extends MessageBase implements VoteMessage, Offl
     }
 
     @Override
-    public void sendAsBroadcast(Player player, Vote vote) {
-        player.sendMessage(getAsBroadcast(message, vote));
+    public void sendAsBroadcast(Player player, MessageContext context) {
+        player.sendMessage(getAsBroadcast(message, context));
     }
 
     @Override
-    public void sendAsReminder(Player player) {
-        player.sendMessage(getAsReminder(message, player));
+    public void sendAsReminder(Player player, MessageContext context) {
+        player.sendMessage(getAsReminder(message, context));
     }
 
     @Override
@@ -33,11 +33,11 @@ public class PlainStringMessage extends MessageBase implements VoteMessage, Offl
     }
 
     @Override
-    public String getWithOfflinePlayer(CommandSender to, PlayerVotes pv) {
+    public String getWithOfflinePlayer(CommandSender to, MessageContext context) {
         String replaced = message;
         for (PlaceholderProvider provider : PROVIDER_LIST) {
             if (provider.canUse() && provider.canUseForOfflinePlayers()) {
-                replaced = provider.applyForReminder(pv, replaced);
+                replaced = provider.apply(replaced, context);
             }
         }
         return replaced;

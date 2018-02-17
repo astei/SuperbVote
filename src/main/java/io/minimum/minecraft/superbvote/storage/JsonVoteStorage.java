@@ -134,12 +134,12 @@ public class JsonVoteStorage implements VoteStorage {
     }
 
     @Override
-    public int getVotes(UUID player) {
+    public PlayerVotes getVotes(UUID player) {
         Preconditions.checkNotNull(player, "player");
         rwl.readLock().lock();
         try {
             PlayerRecord pr = voteCounts.get(player);
-            return pr == null ? 0 : pr.votes;
+            return new PlayerVotes(player, pr == null ? 0 : pr.votes, PlayerVotes.Type.CURRENT);
         } finally {
             rwl.readLock().unlock();
         }
@@ -154,7 +154,7 @@ public class JsonVoteStorage implements VoteStorage {
                     .sorted(Collections.reverseOrder(Comparator.comparing(Map.Entry::getValue)))
                     .skip(skip)
                     .limit(amount)
-                    .map(e -> new PlayerVotes(e.getKey(), e.getValue().votes))
+                    .map(e -> new PlayerVotes(e.getKey(), e.getValue().votes, PlayerVotes.Type.CURRENT))
                     .collect(Collectors.toList());
         } finally {
             rwl.readLock().unlock();
@@ -190,6 +190,18 @@ public class JsonVoteStorage implements VoteStorage {
         } finally {
             rwl.readLock().unlock();
         }
+    }
+
+    @Override
+    public List<PlayerVotes> getAllPlayersWithNoVotesToday(List<UUID> onlinePlayers) {
+        // generic implementation
+        List<PlayerVotes> uuids = new ArrayList<>();
+        for (UUID uuid : onlinePlayers) {
+            if (!hasVotedToday(uuid)) {
+                uuids.add(getVotes(uuid));
+            }
+        }
+        return uuids;
     }
 
     @Override

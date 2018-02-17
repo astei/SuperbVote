@@ -1,24 +1,19 @@
 package io.minimum.minecraft.superbvote.configuration.message.placeholder;
 
-import io.minimum.minecraft.superbvote.SuperbVote;
-import io.minimum.minecraft.superbvote.util.PlayerVotes;
+import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.votes.Vote;
-import org.bukkit.entity.Player;
-
-import java.util.UUID;
 
 public class SuperbVotePlaceholderProvider implements PlaceholderProvider {
     @Override
-    public String applyForBroadcast(Player voted, String message, Vote vote) {
-        return message.replace("%player%", vote.getName()).replace("%service%", vote.getServiceName())
-                .replace("%uuid%", vote.getUuid().toString());
-    }
-
-    @Override
-    public String applyForReminder(Player player, String message) {
-        int votes = SuperbVote.getPlugin().getVoteStorage().getVotes(player.getUniqueId());
-        return message.replace("%player%", player.getName()).replace("%votes%", Integer.toString(votes))
-                .replace("%uuid%", player.getUniqueId().toString());
+    public String apply(String message, MessageContext context) {
+        String base = message.replace("%player%", context.getPlayer().getName())
+                .replace("%votes%", Integer.toString(context.getVoteRecord().getVotes()))
+                .replace("%uuid%", context.getPlayer().getUniqueId().toString());
+        if (context.getVote().isPresent()) {
+            Vote vote = context.getVote().get();
+            base = message.replace("%service%", vote.getServiceName());
+        }
+        return base;
     }
 
     @Override
@@ -29,13 +24,5 @@ public class SuperbVotePlaceholderProvider implements PlaceholderProvider {
     @Override
     public boolean canUseForOfflinePlayers() {
         return true;
-    }
-
-    @Override
-    public String applyForReminder(PlayerVotes player, String message) {
-        String name = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(player.getUuid());
-        if (name != null)
-            message = message.replace("%player%", name);
-        return message.replace("%votes%", Integer.toString(player.getVotes())).replace("%uuid%", player.toString());
     }
 }

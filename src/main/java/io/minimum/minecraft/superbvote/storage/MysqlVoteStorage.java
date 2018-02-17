@@ -1,6 +1,9 @@
 package io.minimum.minecraft.superbvote.storage;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
@@ -12,10 +15,7 @@ import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
 @RequiredArgsConstructor
@@ -156,18 +156,18 @@ public class MysqlVoteStorage implements VoteStorage {
     }
 
     @Override
-    public int getVotes(UUID player) {
+    public PlayerVotes getVotes(UUID player) {
         Preconditions.checkNotNull(player, "player");
         try (Connection connection = dbPool.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement("SELECT votes FROM " + tableName + " WHERE uuid = ?")) {
                 statement.setString(1, player.toString());
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    return resultSet.next() ? resultSet.getInt(1) : 0;
+                    return new PlayerVotes(player, resultSet.next() ? resultSet.getInt(1) : 0, PlayerVotes.Type.CURRENT);
                 }
             }
         } catch (SQLException e) {
             SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get votes for " + player.toString(), e);
-            return 0;
+            return new PlayerVotes(player, 0, PlayerVotes.Type.CURRENT);
         }
     }
 
@@ -181,7 +181,7 @@ public class MysqlVoteStorage implements VoteStorage {
                     List<PlayerVotes> records = new ArrayList<>();
                     while (resultSet.next()) {
                         UUID uuid = UUID.fromString(resultSet.getString(1));
-                        records.add(new PlayerVotes(uuid, resultSet.getInt(2)));
+                        records.add(new PlayerVotes(uuid, resultSet.getInt(2), PlayerVotes.Type.CURRENT));
                     }
                     return records;
                 }
@@ -219,6 +219,28 @@ public class MysqlVoteStorage implements VoteStorage {
         } catch (SQLException e) {
             SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get top votes page count", e);
             return false;
+        }
+    }
+
+    @Override
+    public List<PlayerVotes> getAllPlayersWithNoVotesToday(List<UUID> onlinePlayers) {
+        List<PlayerVotes> players = new ArrayList<>();
+        try (Connection connection = dbPool.getConnection()) {
+            String valueStatement = Joiner.on(", ").join(Collections.nCopies(players.size(), "?"));
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, votes FROM " + tableName + " WHERE uuid IN " + valueStatement + " AND DATE(last_vote) != CURRENT_DATE()")) {
+                for (int i = 0; i < players.size(); i++) {
+                    statement.setString(i + 1, players.get(i).toString());
+                }
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        players.add(new PlayerVotes(UUID.fromString(resultSet.getString(1)), resultSet.getInt(2), PlayerVotes.Type.CURRENT));
+                    }
+                }
+            }
+            return players;
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to batch-get votes", e);
+            return ImmutableList.of();
         }
     }
 

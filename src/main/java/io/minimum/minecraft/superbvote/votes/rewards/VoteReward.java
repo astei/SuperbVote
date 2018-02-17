@@ -1,7 +1,10 @@
 package io.minimum.minecraft.superbvote.votes.rewards;
 
+import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
+import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
 import lombok.Data;
@@ -19,14 +22,14 @@ public class VoteReward {
     private final VoteMessage broadcastMessage;
     private final boolean cascade;
 
-    public void broadcastVote(Vote vote, boolean playerAnnounce, boolean broadcast) {
-        Player onlinePlayer = Bukkit.getPlayer(vote.getUuid());
+    public void broadcastVote(MessageContext context, boolean playerAnnounce, boolean broadcast) {
+        Player onlinePlayer = (context.getPlayer() instanceof Player) ? (Player) context.getPlayer() : null;
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (playerMessage != null && player == onlinePlayer && playerAnnounce) {
-                playerMessage.sendAsBroadcast(player, vote);
+                playerMessage.sendAsBroadcast(player, context);
             }
             if (broadcastMessage != null && broadcast) {
-                broadcastMessage.sendAsBroadcast(player, vote);
+                broadcastMessage.sendAsBroadcast(player, context);
             }
         }
     }

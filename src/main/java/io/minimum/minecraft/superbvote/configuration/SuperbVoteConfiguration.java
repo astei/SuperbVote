@@ -13,6 +13,7 @@ import io.minimum.minecraft.superbvote.configuration.message.VoteMessages;
 import io.minimum.minecraft.superbvote.storage.JsonVoteStorage;
 import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChanceFractionalRewardMatcher;
@@ -107,7 +108,7 @@ public class SuperbVoteConfiguration {
         return new VoteReward(name, rewards, commands, playerMessage, broadcast, cascade);
     }
 
-    public List<VoteReward> getBestRewards(Vote vote) {
+    public List<VoteReward> getBestRewards(Vote vote, PlayerVotes pv) {
         List<VoteReward> best = new ArrayList<>();
         // We only allow random chances to match just once when cascading, the player should not get another chance
         // to "win".
@@ -120,7 +121,7 @@ public class SuperbVoteConfiguration {
                     allAgree = false;
                     break;
                 }
-                if (!matcher.matches(vote)) {
+                if (!matcher.matches(vote, pv)) {
                     allAgree = false;
                     break;
                 }
