@@ -79,7 +79,8 @@ public class TopPlayerSignListener implements Listener {
                     p = Integer.parseInt(event.getLine(1));
                 } catch (NumberFormatException e) {
                     event.setCancelled(true);
-                    event.getPlayer().sendMessage(ChatColor.RED + "The second line needs to be a number.");
+                    event.getPlayer().sendMessage(ChatColor.RED + "The second line needs to be a number, indicating the position on the leaderboard this sign should display.");
+                    event.getPlayer().sendMessage(ChatColor.RED + "For instance, to get the person with the most votes, use '1'.");
                     return;
                 } catch (IndexOutOfBoundsException e) {
                     event.setCancelled(true);

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -73,8 +74,8 @@ public class JsonVoteStorage implements VoteStorage {
         }
 
         // Move the old files out of the way and move in the new one
-        Files.copy(saveTo, saveTo.getParent().resolve(saveTo.getFileName().toString() + "-migrated"));
-        Files.copy(tempPath, saveTo, StandardCopyOption.REPLACE_EXISTING);
+        Files.move(saveTo, saveTo.getParent().resolve(saveTo.getFileName().toString() + "-migrated"));
+        Files.move(tempPath, saveTo, StandardCopyOption.REPLACE_EXISTING);
 
         // Done!
         return vf;
@@ -216,8 +217,15 @@ public class JsonVoteStorage implements VoteStorage {
         } finally {
             rwl.readLock().unlock();
         }
-        try (Writer writer = Files.newBufferedWriter(saveTo, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            gson.toJson(new VotingFile(VERSION, prs), writer);
+
+        // Save to a temporary file and then copy over the existing file.
+        try {
+            Path tempPath = Files.createTempFile("superbvote-", ".json");
+            try (Writer writer = Files.newBufferedWriter(tempPath, StandardOpenOption.WRITE)) {
+                gson.toJson(new VotingFile(VERSION, prs), writer);
+            }
+
+            Files.move(tempPath, saveTo, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException("Unable to save votes to " + saveTo, e);
         }

@@ -7,6 +7,11 @@ import com.google.gson.reflect.TypeToken;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -14,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class QueuedVotesStorage {
-    private final Map<UUID, List<Vote>> voteCounts = new ConcurrentHashMap<>(32, 0.75f, 2);
+    private final Map<UUID, List<Vote>> queuedVotes = new ConcurrentHashMap<>(32, 0.75f, 2);
     private final Gson gson = new Gson();
     private final File saveTo;
 
@@ -24,12 +29,12 @@ public class QueuedVotesStorage {
 
         if (!file.exists()) file.createNewFile();
 
-        try (Reader reader = new BufferedReader(new FileReader(file))) {
+        try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             Map<UUID, List<Vote>> votes = gson.fromJson(reader, new TypeToken<Map<UUID, List<Vote>>>() {
             }.getType());
             if (votes != null) {
                 for (Map.Entry<UUID, List<Vote>> entry : votes.entrySet()) {
-                    voteCounts.put(entry.getKey(), new CopyOnWriteArrayList<>(entry.getValue()));
+                    queuedVotes.put(entry.getKey(), new CopyOnWriteArrayList<>(entry.getValue()));
                 }
             }
         }
@@ -37,25 +42,31 @@ public class QueuedVotesStorage {
 
     public void addVote(Vote vote) {
         Preconditions.checkNotNull(vote, "votes");
-        List<Vote> votes = voteCounts.computeIfAbsent(vote.getUuid(), (ignored) -> new CopyOnWriteArrayList<>());
+        List<Vote> votes = queuedVotes.computeIfAbsent(vote.getUuid(), (ignored) -> new CopyOnWriteArrayList<>());
         votes.add(vote);
     }
 
     public void clearVotes() {
-        voteCounts.clear();
+        queuedVotes.clear();
     }
 
     public List<Vote> getAndRemoveVotes(UUID player) {
         Preconditions.checkNotNull(player, "player");
-        List<Vote> votes = voteCounts.remove(player);
+        List<Vote> votes = queuedVotes.remove(player);
         return votes != null ? votes : ImmutableList.of();
     }
 
     public void save() {
-        try (Writer writer = new BufferedWriter(new FileWriter(saveTo))) {
-            gson.toJson(voteCounts, writer);
+        // Save to a temporary file and then copy over the existing file.
+        try {
+            Path tempPath = Files.createTempFile("superbvote-", ".json");
+            try (Writer writer = Files.newBufferedWriter(tempPath, StandardOpenOption.WRITE)) {
+                gson.toJson(queuedVotes, writer);
+            }
+
+            Files.move(tempPath, saveTo.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new RuntimeException("Unable to save votes to " + saveTo.getAbsolutePath(), e);
+            throw new RuntimeException("Unable to save queued votes to " + saveTo, e);
         }
     }
 }
