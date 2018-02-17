@@ -11,11 +11,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -180,12 +180,9 @@ public class JsonVoteStorage implements VoteStorage {
         try {
             PlayerRecord pr = voteCounts.get(player);
             if (pr != null) {
-                Calendar then = Calendar.getInstance();
-                then.setTimeInMillis(pr.lastVoted);
-                Calendar today = Calendar.getInstance();
-                return then.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                        then.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                        then.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH);
+                return LocalDateTime.ofInstant(Instant.ofEpochMilli(pr.lastVoted), ZoneId.systemDefault())
+                        .toLocalDate()
+                        .equals(LocalDate.now());
             }
             return false;
         } finally {
