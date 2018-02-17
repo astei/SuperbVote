@@ -1,6 +1,7 @@
 package io.minimum.minecraft.superbvote.commands;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -20,7 +21,8 @@ public class VoteCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
             return true;
         }
-        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> message.sendAsReminder((Player) sender));
+        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> message.sendAsReminder((Player) sender,
+                new MessageContext(null, SuperbVote.getPlugin().getVoteStorage().getVotes(((Player) sender).getUniqueId()), (Player) sender)));
         return true;
     }
 }
