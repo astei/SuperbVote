@@ -33,7 +33,7 @@ public class VoteReward {
 
     public void runCommands(Vote vote) {
         for (String command : commands) {
-            String fixed = SuperbVoteConfiguration.replacePlaceholders(command, vote);
+            String fixed = SuperbVoteConfiguration.replaceCommandPlaceholders(command, vote);
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), fixed);
         }
     }

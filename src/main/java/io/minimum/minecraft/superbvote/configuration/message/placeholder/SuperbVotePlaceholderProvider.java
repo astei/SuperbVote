@@ -1,6 +1,7 @@
 package io.minimum.minecraft.superbvote.configuration.message.placeholder;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.entity.Player;
 
@@ -31,11 +32,10 @@ public class SuperbVotePlaceholderProvider implements PlaceholderProvider {
     }
 
     @Override
-    public String applyForReminder(UUID player, String message) {
-        int votes = SuperbVote.getPlugin().getVoteStorage().getVotes(player);
-        String name = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(player);
+    public String applyForReminder(PlayerVotes player, String message) {
+        String name = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(player.getUuid());
         if (name != null)
             message = message.replace("%player%", name);
-        return message.replace("%votes%", Integer.toString(votes)).replace("%uuid%", player.toString());
+        return message.replace("%votes%", Integer.toString(player.getVotes())).replace("%uuid%", player.toString());
     }
 }

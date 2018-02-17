@@ -1,5 +1,6 @@
 package io.minimum.minecraft.superbvote.configuration.message.placeholder;
 
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.entity.Player;
 
@@ -14,5 +15,5 @@ public interface PlaceholderProvider {
 
     boolean canUseForOfflinePlayers();
 
-    String applyForReminder(UUID player, String message);
+    String applyForReminder(PlayerVotes player, String message);
 }

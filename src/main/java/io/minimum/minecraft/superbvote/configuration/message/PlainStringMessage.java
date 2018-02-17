@@ -1,6 +1,7 @@
 package io.minimum.minecraft.superbvote.configuration.message;
 
 import io.minimum.minecraft.superbvote.configuration.message.placeholder.PlaceholderProvider;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -32,11 +33,11 @@ public class PlainStringMessage extends MessageBase implements VoteMessage, Offl
     }
 
     @Override
-    public String getWithOfflinePlayer(CommandSender to, UUID referred) {
+    public String getWithOfflinePlayer(CommandSender to, PlayerVotes pv) {
         String replaced = message;
         for (PlaceholderProvider provider : PROVIDER_LIST) {
             if (provider.canUse() && provider.canUseForOfflinePlayers()) {
-                replaced = provider.applyForReminder(referred, replaced);
+                replaced = provider.applyForReminder(pv, replaced);
             }
         }
         return replaced;

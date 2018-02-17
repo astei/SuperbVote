@@ -143,7 +143,7 @@ public class SuperbVoteConfiguration {
         return configuration.getBoolean("require-online", false);
     }
 
-    public static String replacePlaceholders(String text, Vote vote) {
+    public static String replaceCommandPlaceholders(String text, Vote vote) {
         return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName());
     }
 
