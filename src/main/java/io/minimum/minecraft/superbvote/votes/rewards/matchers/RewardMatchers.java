@@ -2,7 +2,10 @@ package io.minimum.minecraft.superbvote.votes.rewards.matchers;
 
 import com.google.common.collect.ImmutableList;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import net.milkbowl.vault.permission.Permission;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import javax.script.ScriptException;
 import java.io.IOException;
@@ -10,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 
 public class RewardMatchers {
@@ -98,6 +102,26 @@ public class RewardMatchers {
             matchers.add(new WorldRewardMatcher(worlds));
         }
 
+        // groups: <groups> - Requires Vault
+        Optional<Permission> vaultPermission = getVaultPermissions();
+        if (vaultPermission.isPresent()) {
+            String group = section.getString("group");
+            List<String> groups = section.getStringList("groups");
+            if (group != null && !group.isEmpty()) {
+                matchers.add(new VaultGroupRewardMatcher(vaultPermission.get(), ImmutableList.of(group)));
+            } else if (group == null && !groups.isEmpty()) {
+                matchers.add(new VaultGroupRewardMatcher(vaultPermission.get(), groups));
+            }
+        }
+
         return matchers;
+    }
+
+    private static Optional<Permission> getVaultPermissions() {
+        RegisteredServiceProvider<Permission> rsp = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
+        if (rsp != null) {
+            return Optional.of(rsp.getProvider());
+        }
+        return Optional.empty();
     }
 }
