@@ -8,6 +8,7 @@ import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,27 +23,15 @@ public class SuperbVoteListener implements Listener {
     @EventHandler
     public void onVote(final VotifierEvent event) {
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
-            Player onlinePlayer = Bukkit.getPlayerExact(event.getVote().getUsername());
-            UUID uuid;
-            String caseCorrected;
+            OfflinePlayer op = Bukkit.getPlayerExact(event.getVote().getUsername());
             String worldName = null;
-            if (onlinePlayer != null) {
-                uuid = onlinePlayer.getUniqueId();
-                caseCorrected = onlinePlayer.getName();
-                worldName = onlinePlayer.getLocation().getWorld().getName();
-            } else {
-                // Permit case-correction during voting.
-                uuid = SuperbVote.getPlugin().getUuidCache().getUuidFromName(event.getVote().getUsername());
-                if (uuid == null) {
-                    SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + event.getVote().getUsername() + " as we couldn't look up their UUID");
-                    return;
-                }
-                caseCorrected = SuperbVote.getPlugin().getUuidCache().getNameFromUuid(uuid);
+            if (op.isOnline()) {
+                worldName = op.getPlayer().getWorld().getName();
             }
 
-            PlayerVotes pvCurrent = SuperbVote.getPlugin().getVoteStorage().getVotes(uuid);
-            PlayerVotes pv = new PlayerVotes(uuid, pvCurrent.getVotes(), PlayerVotes.Type.FUTURE);
-            Vote vote = new Vote(caseCorrected, uuid, event.getVote().getServiceName(),
+            PlayerVotes pvCurrent = SuperbVote.getPlugin().getVoteStorage().getVotes(op.getUniqueId());
+            PlayerVotes pv = new PlayerVotes(op.getUniqueId(), pvCurrent.getVotes() + 1, PlayerVotes.Type.FUTURE);
+            Vote vote = new Vote(op.getName(), op.getUniqueId(), event.getVote().getServiceName(),
                     event.getVote().getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE), worldName, new Date());
 
             if (!vote.isFakeVote()) {
@@ -54,7 +43,7 @@ public class SuperbVoteListener implements Listener {
             }
 
             processVote(pv, vote, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.enabled"),
-                    onlinePlayer == null && SuperbVote.getPlugin().getConfiguration().requirePlayersOnline(),
+                    !op.isOnline() && SuperbVote.getPlugin().getConfiguration().requirePlayersOnline(),
                     false);
         });
     }

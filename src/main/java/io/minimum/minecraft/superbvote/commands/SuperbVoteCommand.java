@@ -81,7 +81,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                             sender.sendMessage(ChatColor.RED + "You can't do this.");
                             return;
                         }
-                        uuid = SuperbVote.getPlugin().getUuidCache().getUuidFromName(args[1]);
+                        uuid = Bukkit.getOfflinePlayer(args[1]).getUniqueId();
                         name = args[1];
                     } else {
                         sender.sendMessage(ChatColor.RED + "Need to specify at most one arguments.");
@@ -176,7 +176,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                         return;
                     }
                     List<String> translated = leaderboard.stream()
-                            .map(e -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(e.getUuid()))
+                            .map(e -> Bukkit.getOfflinePlayer(e.getUuid()).getName())
                             .collect(Collectors.toList());
                     StringBuilder text = new StringBuilder();
                     for (int i = 0; i < leaderboard.size(); i++) {

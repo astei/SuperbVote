@@ -36,7 +36,7 @@ public class ScoreboardHandler {
         List<PlayerVotes> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(
                 Math.min(16, SuperbVote.getPlugin().getConfig().getInt("leaderboard.scoreboard.max", 10)), 0);
         List<String> leaderboardAsNames = leaderboardAsUuids.stream()
-                .map(ue -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(ue.getUuid()))
+                .map(ue -> Bukkit.getOfflinePlayer(ue.getUuid()).getName())
                 .collect(Collectors.toList());
         if (leaderboardAsNames.isEmpty()) {
             scoreboard.getEntries().stream().filter(s -> !s.equals("None found")).forEach(scoreboard::resetScores);

@@ -9,7 +9,6 @@ import io.minimum.minecraft.superbvote.signboard.TopPlayerSignStorage;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.VoteCooldownHandler;
-import io.minimum.minecraft.superbvote.uuid.UuidCache;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteHandler;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
 import io.minimum.minecraft.superbvote.votes.VoteReminder;
@@ -26,8 +25,6 @@ public class SuperbVote extends JavaPlugin {
     private SuperbVoteConfiguration configuration;
     @Getter
     private VoteStorage voteStorage;
-    @Getter
-    private UuidCache uuidCache;
     @Getter
     private QueuedVotesStorage queuedVotes;
     @Getter
@@ -54,8 +51,6 @@ public class SuperbVote extends JavaPlugin {
         } catch (IOException e) {
             throw new RuntimeException("Exception whilst initializing queued vote storage", e);
         }
-
-        uuidCache = new UuidCache();
 
         scoreboardHandler = new ScoreboardHandler();
 

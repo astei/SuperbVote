@@ -73,7 +73,7 @@ public class TopPlayerSignUpdater implements Runnable {
                 Skull skull = (Skull) head.getState();
                 skull.setSkullType(SkullType.PLAYER);
                 skull.setOwner(sign.getPosition() > top.size() ? UNKNOWN_USERNAME :
-                        SuperbVote.getPlugin().getUuidCache().getNameFromUuid(top.get(sign.getPosition() - 1).getUuid()));
+                        Bukkit.getOfflinePlayer(top.get(sign.getPosition() - 1).getUuid()).getName());
                 skull.update();
             }
         }
