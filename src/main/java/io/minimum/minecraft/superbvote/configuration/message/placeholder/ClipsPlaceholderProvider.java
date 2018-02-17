@@ -1,12 +1,8 @@
 package io.minimum.minecraft.superbvote.configuration.message.placeholder;
 
 import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
-import io.minimum.minecraft.superbvote.votes.Vote;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
-import java.util.UUID;
 
 public class ClipsPlaceholderProvider implements PlaceholderProvider {
     @Override

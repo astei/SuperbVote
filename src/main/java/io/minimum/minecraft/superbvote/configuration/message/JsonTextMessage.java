@@ -1,6 +1,5 @@
 package io.minimum.minecraft.superbvote.configuration.message;
 
-import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

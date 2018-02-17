@@ -3,9 +3,7 @@ package io.minimum.minecraft.superbvote.storage;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public interface VoteStorage {
