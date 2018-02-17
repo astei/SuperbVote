@@ -153,6 +153,7 @@ public class JsonVoteStorage implements VoteStorage {
         rwl.readLock().lock();
         try {
             return voteCounts.entrySet().stream()
+                    .filter(e -> e.getValue().votes > 0)
                     .sorted(Collections.reverseOrder(Comparator.comparing(Map.Entry::getValue)))
                     .skip(skip)
                     .limit(amount)

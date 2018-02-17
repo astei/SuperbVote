@@ -120,7 +120,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                     return true;
                 }
 
-                String format = !(sender instanceof Player) ? "text" :
+                String format = !(sender instanceof Player) || page > 0 ? "text" :
                         SuperbVote.getPlugin().getConfig().getString("leaderboard.display", "text");
 
                 switch (format) {

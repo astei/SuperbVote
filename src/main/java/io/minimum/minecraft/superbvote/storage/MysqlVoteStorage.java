@@ -186,7 +186,7 @@ public class MysqlVoteStorage implements VoteStorage {
     public List<PlayerVotes> getTopVoters(int amount, int page) {
         int offset = page * amount;
         try (Connection connection = dbPool.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, votes FROM " + tableName + " ORDER BY votes DESC " +
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, votes FROM " + tableName + " WHERE votes > 0 ORDER BY votes DESC " +
                     "LIMIT " + amount + " OFFSET " + offset)) {
                 try (ResultSet resultSet = statement.executeQuery()) {
                     List<PlayerVotes> records = new ArrayList<>();

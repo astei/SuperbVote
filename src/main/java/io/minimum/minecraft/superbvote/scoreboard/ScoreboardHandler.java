@@ -18,10 +18,10 @@ public class ScoreboardHandler {
 
     public ScoreboardHandler() {
         scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        objective = scoreboard.registerNewObjective("", "dummy");
-        reload();
+        objective = scoreboard.registerNewObjective("votes", "dummy");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         objective.getScore("None found").setScore(1);
+        reload();
     }
 
     public void reload() {
@@ -52,10 +52,6 @@ public class ScoreboardHandler {
     }
 
     public void toggle(Player player) {
-        if (player.getScoreboard() != scoreboard) {
-            player.setScoreboard(scoreboard);
-        } else {
-            player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-        }
+        player.setScoreboard(scoreboard);
     }
 }
