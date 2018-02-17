@@ -263,7 +263,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                 }
                 if (args.length != 2) {
                     sender.sendMessage(ChatColor.RED + "Need to specify an argument.");
-                    sender.sendMessage(ChatColor.RED + "/sv migrate <gal>");
+                    sender.sendMessage(ChatColor.RED + "/sv migrate <gal|svjson>");
                     sender.sendMessage(ChatColor.RED + "Migrate votes from another vote plugin.");
                     return true;
                 }

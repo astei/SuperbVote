@@ -70,14 +70,10 @@ public class SuperbVoteListener implements Listener {
                 for (VoteReward reward : bestRewards) {
                     reward.broadcastVote(context, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.message-player"), broadcast);
                 }
+                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), this::afterVoteProcessing);
             }
 
-            Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> {
-                bestRewards.forEach(reward -> reward.runCommands(vote));
-                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
-                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(
-                        SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()));
-            });
+            Bukkit.getScheduler().runTask(SuperbVote.getPlugin(), () -> bestRewards.forEach(reward -> reward.runCommands(vote)));
         }
     }
 
@@ -92,7 +88,10 @@ public class SuperbVoteListener implements Listener {
             // Process queued votes.
             PlayerVotes dummyPv = new PlayerVotes(event.getPlayer().getUniqueId(), 0, PlayerVotes.Type.CURRENT); // we don't broadcast/send messages for queued votes
             List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
-            votes.forEach(v -> processVote(dummyPv, v, false, false, true));
+            if (!votes.isEmpty()) {
+                votes.forEach(v -> processVote(dummyPv, v, false, false, true));
+                afterVoteProcessing();
+            }
 
             // Remind players to vote.
             if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join") &&
@@ -104,5 +103,10 @@ public class SuperbVoteListener implements Listener {
                 SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer(), context);
             }
         });
+    }
+
+    private void afterVoteProcessing() {
+        SuperbVote.getPlugin().getScoreboardHandler().doPopulate();
+        new TopPlayerSignFetcher(SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()).run();
     }
 }

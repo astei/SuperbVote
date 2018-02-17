@@ -113,28 +113,23 @@ public class SuperbVoteConfiguration {
         // We only allow random chances to match just once when cascading, the player should not get another chance
         // to "win".
         boolean chanceMatched = false;
+        rewardCheck:
         for (VoteReward reward : rewards) {
-            boolean allAgree = true;
+            boolean rewardMatchChance = false;
             for (RewardMatcher matcher : reward.getRewardMatchers()) {
-                // Break early if we've matched a chance award.
-                if (chanceMatched && (matcher instanceof ChanceFractionalRewardMatcher || matcher instanceof ChancePercentageRewardMatcher)) {
-                    allAgree = false;
-                    break;
+                boolean isChanceMatcher = (matcher instanceof ChanceFractionalRewardMatcher || matcher instanceof ChancePercentageRewardMatcher);
+                // Break if we've matched a chance award (and we've matched on it), or if this matcher doesn't match.
+                if ((chanceMatched && isChanceMatcher) || !matcher.matches(vote, pv)) {
+                    continue rewardCheck;
                 }
-                if (!matcher.matches(vote, pv)) {
-                    allAgree = false;
-                    break;
-                }
-            }
-            if (allAgree) {
-                best.add(reward);
-                if (!reward.isCascade())
-                    return best;
-                for (RewardMatcher matcher : reward.getRewardMatchers()) {
-                    if (matcher instanceof ChanceFractionalRewardMatcher || matcher instanceof ChancePercentageRewardMatcher)
-                        chanceMatched = true;
+                if (isChanceMatcher) {
+                    rewardMatchChance = true;
                 }
             }
+
+            best.add(reward);
+            if (!reward.isCascade()) break;
+            if (rewardMatchChance) chanceMatched = true;
         }
 
         return best;
