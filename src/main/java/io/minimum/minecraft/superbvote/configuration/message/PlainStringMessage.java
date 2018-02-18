@@ -1,13 +1,9 @@
 package io.minimum.minecraft.superbvote.configuration.message;
 
 import io.minimum.minecraft.superbvote.configuration.message.placeholder.PlaceholderProvider;
-import io.minimum.minecraft.superbvote.util.PlayerVotes;
-import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.UUID;
 
 public class PlainStringMessage extends MessageBase implements VoteMessage, OfflineVoteMessage {
 
@@ -18,13 +14,13 @@ public class PlainStringMessage extends MessageBase implements VoteMessage, Offl
     }
 
     @Override
-    public void sendAsBroadcast(Player player, Vote vote) {
-        player.sendMessage(getAsBroadcast(message, vote));
+    public void sendAsBroadcast(Player player, MessageContext context) {
+        player.sendMessage(replace(message, context));
     }
 
     @Override
-    public void sendAsReminder(Player player) {
-        player.sendMessage(getAsReminder(message, player));
+    public void sendAsReminder(Player player, MessageContext context) {
+        player.sendMessage(replace(message, context));
     }
 
     @Override
@@ -33,13 +29,7 @@ public class PlainStringMessage extends MessageBase implements VoteMessage, Offl
     }
 
     @Override
-    public String getWithOfflinePlayer(CommandSender to, PlayerVotes pv) {
-        String replaced = message;
-        for (PlaceholderProvider provider : PROVIDER_LIST) {
-            if (provider.canUse() && provider.canUseForOfflinePlayers()) {
-                replaced = provider.applyForReminder(pv, replaced);
-            }
-        }
-        return replaced;
+    public String getWithOfflinePlayer(CommandSender to, MessageContext context) {
+        return replace(message, context);
     }
 }

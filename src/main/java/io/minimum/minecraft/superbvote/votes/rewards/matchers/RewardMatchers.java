@@ -2,7 +2,10 @@ package io.minimum.minecraft.superbvote.votes.rewards.matchers;
 
 import com.google.common.collect.ImmutableList;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import net.milkbowl.vault.permission.Permission;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import javax.script.ScriptException;
 import java.io.IOException;
@@ -10,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 
 public class RewardMatchers {
@@ -32,6 +36,7 @@ public class RewardMatchers {
         if (chanceFracObject != null && chanceFracObject instanceof Integer) {
             if ((int) chanceFracObject < 1) {
                 SuperbVote.getPlugin().getLogger().severe("Fraction " + chanceFracObject + " is not valid; must be 1 or more.");
+                matchers.add(StaticRewardMatcher.NEVER_MATCH);
             } else {
                 matchers.add(new ChanceFractionalRewardMatcher((int) chanceFracObject));
             }
@@ -40,6 +45,7 @@ public class RewardMatchers {
                     "retain the current behavior, or migrate to a percentage matcher by specifying 'chance-percentage' in your configuration.");
             if ((int) chanceObject < 1) {
                 SuperbVote.getPlugin().getLogger().severe("Fraction " + chanceObject + " is not valid; must be 1 or more.");
+                matchers.add(StaticRewardMatcher.NEVER_MATCH);
             } else {
                 matchers.add(new ChanceFractionalRewardMatcher((int) chanceObject));
             }
@@ -53,6 +59,7 @@ public class RewardMatchers {
                 matchers.add(new ChancePercentageRewardMatcher(chancePerInt));
             } else {
                 SuperbVote.getPlugin().getLogger().severe("Percentage " + chancePerInt + " is not valid; must be between 1 and 99.");
+                matchers.add(StaticRewardMatcher.NEVER_MATCH);
             }
         }
 
@@ -72,6 +79,12 @@ public class RewardMatchers {
             matchers.add(new CumulativeVotesRewardMatcher((int) cumulativeObject));
         }
 
+        // every-cumulative-votes: <votes>
+        Object everyCumulativeObject = section.get("every-cumulative-votes");
+        if (everyCumulativeObject != null && everyCumulativeObject instanceof Integer) {
+            matchers.add(new CumulativeVotesEveryRewardMatcher((int) everyCumulativeObject));
+        }
+
         // script: <path>
         String script = section.getString("script");
         if (script != null) {
@@ -79,6 +92,7 @@ public class RewardMatchers {
                 matchers.add(new ScriptRewardMatcher(Paths.get(script)));
             } catch (IOException | ScriptException e) {
                 SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to parse script " + script, e);
+                matchers.add(StaticRewardMatcher.NEVER_MATCH);
             }
         }
 
@@ -92,6 +106,32 @@ public class RewardMatchers {
             matchers.add(new WorldRewardMatcher(worlds));
         }
 
+        // groups: <groups> - Requires Vault
+        Optional<Permission> vaultPermission = getVaultPermissions();
+        String group = section.getString("group");
+        List<String> groups = section.getStringList("groups");
+        if (vaultPermission.isPresent()) {
+            if (group != null && !group.isEmpty()) {
+                matchers.add(new VaultGroupRewardMatcher(vaultPermission.get(), ImmutableList.of(group)));
+            } else if (group == null && !groups.isEmpty()) {
+                matchers.add(new VaultGroupRewardMatcher(vaultPermission.get(), groups));
+            }
+        } else if ((group != null && !group.isEmpty()) || !groups.isEmpty()) {
+            SuperbVote.getPlugin().getLogger().warning("You can't use the 'group' or 'groups' matcher without having Vault installed.");
+            matchers.add(StaticRewardMatcher.NEVER_MATCH);
+        }
+
         return matchers;
+    }
+
+    private static Optional<Permission> getVaultPermissions() {
+        if (Bukkit.getServer().getPluginManager().getPlugin("Vault") == null) {
+            return Optional.empty();
+        }
+        RegisteredServiceProvider<Permission> rsp = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
+        if (rsp != null) {
+            return Optional.of(rsp.getProvider());
+        }
+        return Optional.empty();
     }
 }

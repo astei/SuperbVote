@@ -49,8 +49,7 @@ public class TopPlayerSignListener implements Listener {
         // Otherwise, destroy this sign.
         SuperbVote.getPlugin().getTopPlayerSignStorage().removeSign(sign);
         player.sendMessage(ChatColor.RED + "Top voter sign unregistered.");
-        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(
-                SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()));
+        updateSigns();
         return true;
     }
 
@@ -62,8 +61,7 @@ public class TopPlayerSignListener implements Listener {
                 for (BlockFace face : TopPlayerSignUpdater.FACES) {
                     if (down.getRelative(face).getLocation().equals(sign.getSign().getBukkitLocation())) {
                         // We found an adjacent sign. Update so that the change will be reflected.
-                        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(
-                                SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()));
+                        updateSigns();
                     }
                 }
             }
@@ -76,27 +74,28 @@ public class TopPlayerSignListener implements Listener {
             if (event.getLine(0).startsWith("[topvoter]") && event.getPlayer().hasPermission("superbvote.managesigns")) {
                 int p;
                 try {
-                    p = Integer.parseInt(event.getLine(1));
-                } catch (NumberFormatException e) {
+                    p = Integer.parseInt(event.getLine(1).replaceAll("[^\\d]", ""));
+                } catch (NumberFormatException | IndexOutOfBoundsException e) {
                     event.setCancelled(true);
-                    event.getPlayer().sendMessage(ChatColor.RED + "The second line needs to be a number.");
-                    return;
-                } catch (IndexOutOfBoundsException e) {
-                    event.setCancelled(true);
-                    event.getPlayer().sendMessage(ChatColor.RED + "The second line does not exist.");
+                    event.getPlayer().sendMessage(ChatColor.RED + "The second line needs to be a number, indicating the position on the leaderboard this sign should display.");
+                    event.getPlayer().sendMessage(ChatColor.RED + "For instance, to get the person with the most votes, use '1'.");
                     return;
                 }
 
                 TopPlayerSign sign = new TopPlayerSign(new SerializableLocation(event.getBlock().getWorld().getName(),
                         event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ()), p);
                 SuperbVote.getPlugin().getTopPlayerSignStorage().addSign(sign);
-                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(
-                        SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()));
+                updateSigns();
 
                 event.getPlayer().sendMessage(ChatColor.GREEN + "Top voter sign registered.");
             }
         } catch (IndexOutOfBoundsException e) {
             // Ignore
         }
+    }
+
+    private void updateSigns() {
+        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), new TopPlayerSignFetcher(
+                SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()));
     }
 }

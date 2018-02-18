@@ -13,6 +13,7 @@ import io.minimum.minecraft.superbvote.configuration.message.VoteMessages;
 import io.minimum.minecraft.superbvote.storage.JsonVoteStorage;
 import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChanceFractionalRewardMatcher;
@@ -107,33 +108,28 @@ public class SuperbVoteConfiguration {
         return new VoteReward(name, rewards, commands, playerMessage, broadcast, cascade);
     }
 
-    public List<VoteReward> getBestRewards(Vote vote) {
+    public List<VoteReward> getBestRewards(Vote vote, PlayerVotes pv) {
         List<VoteReward> best = new ArrayList<>();
         // We only allow random chances to match just once when cascading, the player should not get another chance
         // to "win".
         boolean chanceMatched = false;
+        rewardCheck:
         for (VoteReward reward : rewards) {
-            boolean allAgree = true;
+            boolean rewardMatchChance = false;
             for (RewardMatcher matcher : reward.getRewardMatchers()) {
-                // Break early if we've matched a chance award.
-                if (chanceMatched && (matcher instanceof ChanceFractionalRewardMatcher || matcher instanceof ChancePercentageRewardMatcher)) {
-                    allAgree = false;
-                    break;
+                boolean isChanceMatcher = (matcher instanceof ChanceFractionalRewardMatcher || matcher instanceof ChancePercentageRewardMatcher);
+                // Break if we've matched a chance award (and we've matched on it), or if this matcher doesn't match.
+                if ((chanceMatched && isChanceMatcher) || !matcher.matches(vote, pv)) {
+                    continue rewardCheck;
                 }
-                if (!matcher.matches(vote)) {
-                    allAgree = false;
-                    break;
-                }
-            }
-            if (allAgree) {
-                best.add(reward);
-                if (!reward.isCascade())
-                    return best;
-                for (RewardMatcher matcher : reward.getRewardMatchers()) {
-                    if (matcher instanceof ChanceFractionalRewardMatcher || matcher instanceof ChancePercentageRewardMatcher)
-                        chanceMatched = true;
+                if (isChanceMatcher) {
+                    rewardMatchChance = true;
                 }
             }
+
+            best.add(reward);
+            if (!reward.isCascade()) break;
+            if (rewardMatchChance) chanceMatched = true;
         }
 
         return best;

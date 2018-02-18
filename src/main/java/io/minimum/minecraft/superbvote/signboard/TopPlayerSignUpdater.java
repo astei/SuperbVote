@@ -1,9 +1,11 @@
 package io.minimum.minecraft.superbvote.signboard;
 
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.configuration.message.PlainStringMessage;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
 import org.bukkit.block.Block;
@@ -54,8 +56,10 @@ public class TopPlayerSignUpdater implements Runnable {
             } else {
                 for (int i = 0; i < Math.min(4, SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().size()); i++) {
                     PlainStringMessage m = SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().get(i);
-                    worldSign.setLine(i, m.getWithOfflinePlayer(null, top.get(sign.getPosition() - 1)).replace("%num%",
-                            Integer.toString(sign.getPosition())));
+                    PlayerVotes pv = top.get(sign.getPosition() - 1);
+                    worldSign.setLine(i, m.getWithOfflinePlayer(null,
+                            new MessageContext(null, pv, Bukkit.getOfflinePlayer(pv.getUuid())))
+                            .replace("%num%", Integer.toString(sign.getPosition())));
                 }
                 for (int i = SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().size(); i < 4; i++) {
                     worldSign.setLine(i, "");
@@ -70,7 +74,7 @@ public class TopPlayerSignUpdater implements Runnable {
                 Skull skull = (Skull) head.getState();
                 skull.setSkullType(SkullType.PLAYER);
                 skull.setOwner(sign.getPosition() > top.size() ? UNKNOWN_USERNAME :
-                        SuperbVote.getPlugin().getUuidCache().getNameFromUuid(top.get(sign.getPosition() - 1).getUuid()));
+                        Bukkit.getOfflinePlayer(top.get(sign.getPosition() - 1).getUuid()).getName());
                 skull.update();
             }
         }

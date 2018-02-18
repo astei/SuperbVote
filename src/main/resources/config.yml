@@ -38,6 +38,7 @@ rewards:
       service: SpecialService
     commands:
     - give %player% diamond 4
+    - eco give %player% 1000
     player-message: "&aThanks for meeting nearly impossible conditions, you have been rewarded with 4 diamonds and $1000."
     broadcast-message: "&a%player% got really lucky and was rewarded with 4 diamonds and $1000!"
   # Default rewards are defined by having no preconditions. Place it at the bottom of the config.

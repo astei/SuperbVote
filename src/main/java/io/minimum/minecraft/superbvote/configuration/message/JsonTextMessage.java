@@ -1,6 +1,5 @@
 package io.minimum.minecraft.superbvote.configuration.message;
 
-import io.minimum.minecraft.superbvote.votes.Vote;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -12,14 +11,14 @@ public class JsonTextMessage extends MessageBase implements VoteMessage {
     }
 
     @Override
-    public void sendAsBroadcast(Player player, Vote vote) {
-        String jsonString = getAsBroadcast(message, vote);
+    public void sendAsBroadcast(Player player, MessageContext context) {
+        String jsonString = replace(message, context);
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + jsonString);
     }
 
     @Override
-    public void sendAsReminder(Player player) {
-        String jsonString = getAsReminder(message, player);
+    public void sendAsReminder(Player player, MessageContext context) {
+        String jsonString = replace(message, context);
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + jsonString);
     }
 }

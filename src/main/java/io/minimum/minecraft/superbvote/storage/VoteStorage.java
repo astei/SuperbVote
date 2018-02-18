@@ -11,17 +11,23 @@ public interface VoteStorage {
 
     void addVote(UUID player);
 
-    void setVotes(UUID player, int votes);
+    default void setVotes(UUID player, int votes) {
+        setVotes(player, votes, System.currentTimeMillis());
+    }
+
+    void setVotes(UUID player, int votes, long ts);
 
     void clearVotes();
 
-    int getVotes(UUID player);
+    PlayerVotes getVotes(UUID player);
 
     List<PlayerVotes> getTopVoters(int amount, int page);
 
     int getPagesAvailable(int amount);
 
     boolean hasVotedToday(UUID player);
+
+    List<PlayerVotes> getAllPlayersWithNoVotesToday(List<UUID> onlinePlayers);
 
     void save();
 }

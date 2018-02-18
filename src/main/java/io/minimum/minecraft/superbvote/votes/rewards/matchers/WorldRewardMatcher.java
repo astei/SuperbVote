@@ -1,5 +1,6 @@
 package io.minimum.minecraft.superbvote.votes.rewards.matchers;
 
+import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import lombok.ToString;
 
@@ -16,7 +17,7 @@ public class WorldRewardMatcher implements RewardMatcher {
     }
 
     @Override
-    public boolean matches(Vote vote) {
+    public boolean matches(Vote vote, PlayerVotes pv) {
         if (vote.getWorldName() == null)
             return false;
         return names.contains(vote.getWorldName().toLowerCase());

@@ -18,10 +18,10 @@ public class ScoreboardHandler {
 
     public ScoreboardHandler() {
         scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        objective = scoreboard.registerNewObjective("", "dummy");
-        reload();
+        objective = scoreboard.registerNewObjective("votes", "dummy");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         objective.getScore("None found").setScore(1);
+        reload();
     }
 
     public void reload() {
@@ -36,7 +36,7 @@ public class ScoreboardHandler {
         List<PlayerVotes> leaderboardAsUuids = SuperbVote.getPlugin().getVoteStorage().getTopVoters(
                 Math.min(16, SuperbVote.getPlugin().getConfig().getInt("leaderboard.scoreboard.max", 10)), 0);
         List<String> leaderboardAsNames = leaderboardAsUuids.stream()
-                .map(ue -> SuperbVote.getPlugin().getUuidCache().getNameFromUuid(ue.getUuid()))
+                .map(ue -> Bukkit.getOfflinePlayer(ue.getUuid()).getName())
                 .collect(Collectors.toList());
         if (leaderboardAsNames.isEmpty()) {
             scoreboard.getEntries().stream().filter(s -> !s.equals("None found")).forEach(scoreboard::resetScores);
@@ -52,10 +52,6 @@ public class ScoreboardHandler {
     }
 
     public void toggle(Player player) {
-        if (player.getScoreboard() != scoreboard) {
-            player.setScoreboard(scoreboard);
-        } else {
-            player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-        }
+        player.setScoreboard(scoreboard);
     }
 }

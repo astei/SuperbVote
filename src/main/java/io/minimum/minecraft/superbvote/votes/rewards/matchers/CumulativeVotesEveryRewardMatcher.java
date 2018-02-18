@@ -4,15 +4,13 @@ import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Random;
-
 @RequiredArgsConstructor
-public class ChancePercentageRewardMatcher implements RewardMatcher {
-    private static final Random random = new Random();
-    private final int chance;
+public class CumulativeVotesEveryRewardMatcher implements RewardMatcher {
+    private final int everyVotes;
 
     @Override
     public boolean matches(Vote vote, PlayerVotes pv) {
-        return random.nextInt(100) < chance;
+        int cur = pv.getType() == PlayerVotes.Type.FUTURE ? pv.getVotes() : pv.getVotes() + 1;
+        return cur % everyVotes == 0;
     }
 }

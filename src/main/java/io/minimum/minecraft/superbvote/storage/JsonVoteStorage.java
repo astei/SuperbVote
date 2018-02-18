@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -73,8 +74,8 @@ public class JsonVoteStorage implements VoteStorage {
         }
 
         // Move the old files out of the way and move in the new one
-        Files.copy(saveTo, saveTo.getParent().resolve(saveTo.getFileName().toString() + "-migrated"));
-        Files.copy(tempPath, saveTo, StandardCopyOption.REPLACE_EXISTING);
+        Files.move(saveTo, saveTo.getParent().resolve(saveTo.getFileName().toString() + "-migrated"));
+        Files.move(tempPath, saveTo, StandardCopyOption.REPLACE_EXISTING);
 
         // Done!
         return vf;
@@ -105,7 +106,7 @@ public class JsonVoteStorage implements VoteStorage {
     }
 
     @Override
-    public void setVotes(UUID player, int votes) {
+    public void setVotes(UUID player, int votes, long ts) {
         Preconditions.checkNotNull(player, "player");
         Preconditions.checkArgument(votes >= 0, "votes out of bound");
         rwl.writeLock().lock();
@@ -113,9 +114,10 @@ public class JsonVoteStorage implements VoteStorage {
             if (votes == 0) {
                 voteCounts.remove(player);
             } else {
-                PlayerRecord rec = voteCounts.putIfAbsent(player, new PlayerRecord(votes));
+                PlayerRecord rec = voteCounts.putIfAbsent(player, new PlayerRecord(votes, ts));
                 if (rec != null) {
                     rec.votes = votes;
+                    rec.lastVoted = ts;
                 }
             }
         } finally {
@@ -134,12 +136,12 @@ public class JsonVoteStorage implements VoteStorage {
     }
 
     @Override
-    public int getVotes(UUID player) {
+    public PlayerVotes getVotes(UUID player) {
         Preconditions.checkNotNull(player, "player");
         rwl.readLock().lock();
         try {
             PlayerRecord pr = voteCounts.get(player);
-            return pr == null ? 0 : pr.votes;
+            return new PlayerVotes(player, pr == null ? 0 : pr.votes, PlayerVotes.Type.CURRENT);
         } finally {
             rwl.readLock().unlock();
         }
@@ -151,10 +153,11 @@ public class JsonVoteStorage implements VoteStorage {
         rwl.readLock().lock();
         try {
             return voteCounts.entrySet().stream()
+                    .filter(e -> e.getValue().votes > 0)
                     .sorted(Collections.reverseOrder(Comparator.comparing(Map.Entry::getValue)))
                     .skip(skip)
                     .limit(amount)
-                    .map(e -> new PlayerVotes(e.getKey(), e.getValue().votes))
+                    .map(e -> new PlayerVotes(e.getKey(), e.getValue().votes, PlayerVotes.Type.CURRENT))
                     .collect(Collectors.toList());
         } finally {
             rwl.readLock().unlock();
@@ -179,17 +182,26 @@ public class JsonVoteStorage implements VoteStorage {
         try {
             PlayerRecord pr = voteCounts.get(player);
             if (pr != null) {
-                Calendar then = Calendar.getInstance();
-                then.setTimeInMillis(pr.lastVoted);
-                Calendar today = Calendar.getInstance();
-                return then.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                        then.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                        then.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH);
+                return LocalDateTime.ofInstant(Instant.ofEpochMilli(pr.lastVoted), ZoneId.systemDefault())
+                        .toLocalDate()
+                        .equals(LocalDate.now());
             }
             return false;
         } finally {
             rwl.readLock().unlock();
         }
+    }
+
+    @Override
+    public List<PlayerVotes> getAllPlayersWithNoVotesToday(List<UUID> onlinePlayers) {
+        // generic implementation
+        List<PlayerVotes> uuids = new ArrayList<>();
+        for (UUID uuid : onlinePlayers) {
+            if (!hasVotedToday(uuid)) {
+                uuids.add(getVotes(uuid));
+            }
+        }
+        return uuids;
     }
 
     @Override
@@ -204,8 +216,15 @@ public class JsonVoteStorage implements VoteStorage {
         } finally {
             rwl.readLock().unlock();
         }
-        try (Writer writer = Files.newBufferedWriter(saveTo, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            gson.toJson(new VotingFile(VERSION, prs), writer);
+
+        // Save to a temporary file and then copy over the existing file.
+        try {
+            Path tempPath = Files.createTempFile("superbvote-", ".json");
+            try (Writer writer = Files.newBufferedWriter(tempPath, StandardOpenOption.WRITE)) {
+                gson.toJson(new VotingFile(VERSION, prs), writer);
+            }
+
+            Files.move(tempPath, saveTo, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException("Unable to save votes to " + saveTo, e);
         }

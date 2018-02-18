@@ -1,6 +1,8 @@
 package io.minimum.minecraft.superbvote.storage;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
@@ -21,7 +23,8 @@ import java.util.logging.Level;
 @RequiredArgsConstructor
 public class MysqlVoteStorage implements VoteStorage {
     public static final int TABLE_VERSION_2 = 2;
-    public static final int TABLE_VERSION = TABLE_VERSION_2;
+    public static final int TABLE_VERSION_3 = 3;
+    public static final int TABLE_VERSION_CURRENT = TABLE_VERSION_3;
 
     private final HikariPool dbPool;
     private final String tableName;
@@ -38,18 +41,24 @@ public class MysqlVoteStorage implements VoteStorage {
             try (ResultSet t = connection.getMetaData().getTables(null, null, tableName, null)) {
                 if (!t.next()) {
                     try (Statement statement = connection.createStatement()) {
-                        statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT, last_vote TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+                        statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT, last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
                         // This may speed up leaderboards
                         statement.executeUpdate("CREATE INDEX uuid_votes_idx ON " + tableName + " (uuid, votes)");
                     }
                     isUpdated = true;
                 } else {
-                    if (ver < TABLE_VERSION) {
-                        SuperbVote.getPlugin().getLogger().log(Level.INFO, "Migrating database from version " + ver + " to " + TABLE_VERSION + ", this may take a while...");
+                    if (ver < TABLE_VERSION_CURRENT) {
+                        SuperbVote.getPlugin().getLogger().log(Level.INFO, "Migrating database from version " + ver + " to " + TABLE_VERSION_CURRENT + ", this may take a while...");
                         // We may need to add in the new last_vote column
                         if (ver < TABLE_VERSION_2) {
                             try (Statement statement = connection.createStatement()) {
                                 statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN last_vote TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                            }
+                            isUpdated = true;
+                        }
+                        if (ver < TABLE_VERSION_3) {
+                            try (Statement statement = connection.createStatement()) {
+                                statement.executeUpdate("ALTER TABLE " + tableName + " CHANGE last_vote last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
                             }
                             isUpdated = true;
                         }
@@ -61,7 +70,7 @@ public class MysqlVoteStorage implements VoteStorage {
         }
 
         if (isUpdated) {
-            dbInfo.set("db_version", TABLE_VERSION);
+            dbInfo.set("db_version", TABLE_VERSION_CURRENT);
             try {
                 dbInfo.save(new File(SuperbVote.getPlugin().getDataFolder(), "db_version.yml"));
             } catch (IOException e) {
@@ -88,7 +97,7 @@ public class MysqlVoteStorage implements VoteStorage {
         try (Connection connection = dbPool.getConnection()) {
             if (knownName != null) {
                 try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes) VALUES (?, ?, 1)" +
-                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_name = ?")) {
+                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_name = ?, last_vote = CURRENT_TIMESTAMP()")) {
                     statement.setString(1, player.toString());
                     statement.setString(2, knownName);
                     statement.setString(3, knownName);
@@ -96,13 +105,13 @@ public class MysqlVoteStorage implements VoteStorage {
                 }
             } else {
                 try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes) VALUES (?, NULL, 1)" +
-                        " ON DUPLICATE KEY UPDATE votes = votes + 1")) {
+                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_vote = CURRENT_TIMESTAMP()")) {
                     statement.setString(1, player.toString());
                     statement.executeUpdate();
                 }
             }
         } catch (SQLException e) {
-            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to add vote for " + player.toString(), e);
+            throw new RuntimeException("Unable to add vote for " + player.toString(), e);
         }
     }
 
@@ -118,26 +127,28 @@ public class MysqlVoteStorage implements VoteStorage {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to add vote for " + player.toString(), e);
+            throw new RuntimeException("Unable to update name for " + player.toString(), e);
         }
     }
 
     @Override
-    public void setVotes(UUID player, int votes) {
+    public void setVotes(UUID player, int votes, long ts) {
         if (readOnly)
             return;
 
         Preconditions.checkNotNull(player, "player");
         try (Connection connection = dbPool.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, votes) VALUES (?, ?)" +
-                    " ON DUPLICATE KEY UPDATE votes = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, votes, last_vote) VALUES (?, ?, ?)" +
+                    " ON DUPLICATE KEY UPDATE votes = ?, last_vote = ?")) {
                 statement.setString(1, player.toString());
                 statement.setInt(2, votes);
-                statement.setInt(3, votes);
+                statement.setTimestamp(3, new Timestamp(ts));
+                statement.setInt(4, votes);
+                statement.setTimestamp(5, new Timestamp(ts));
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to set votes for " + player.toString(), e);
+            throw new RuntimeException("Unable to set votes for " + player.toString(), e);
         }
     }
 
@@ -156,18 +167,18 @@ public class MysqlVoteStorage implements VoteStorage {
     }
 
     @Override
-    public int getVotes(UUID player) {
+    public PlayerVotes getVotes(UUID player) {
         Preconditions.checkNotNull(player, "player");
         try (Connection connection = dbPool.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement("SELECT votes FROM " + tableName + " WHERE uuid = ?")) {
                 statement.setString(1, player.toString());
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    return resultSet.next() ? resultSet.getInt(1) : 0;
+                    return new PlayerVotes(player, resultSet.next() ? resultSet.getInt(1) : 0, PlayerVotes.Type.CURRENT);
                 }
             }
         } catch (SQLException e) {
             SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get votes for " + player.toString(), e);
-            return 0;
+            return new PlayerVotes(player, 0, PlayerVotes.Type.CURRENT);
         }
     }
 
@@ -175,13 +186,13 @@ public class MysqlVoteStorage implements VoteStorage {
     public List<PlayerVotes> getTopVoters(int amount, int page) {
         int offset = page * amount;
         try (Connection connection = dbPool.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, votes FROM " + tableName + " ORDER BY votes DESC " +
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, votes FROM " + tableName + " WHERE votes > 0 ORDER BY votes DESC " +
                     "LIMIT " + amount + " OFFSET " + offset)) {
                 try (ResultSet resultSet = statement.executeQuery()) {
                     List<PlayerVotes> records = new ArrayList<>();
                     while (resultSet.next()) {
                         UUID uuid = UUID.fromString(resultSet.getString(1));
-                        records.add(new PlayerVotes(uuid, resultSet.getInt(2)));
+                        records.add(new PlayerVotes(uuid, resultSet.getInt(2), PlayerVotes.Type.CURRENT));
                     }
                     return records;
                 }
@@ -219,6 +230,45 @@ public class MysqlVoteStorage implements VoteStorage {
         } catch (SQLException e) {
             SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get top votes page count", e);
             return false;
+        }
+    }
+
+    @Override
+    public List<PlayerVotes> getAllPlayersWithNoVotesToday(List<UUID> onlinePlayers) {
+        if (onlinePlayers.isEmpty()) {
+            return ImmutableList.of();
+        }
+        List<PlayerVotes> votes = new ArrayList<>();
+        try (Connection connection = dbPool.getConnection()) {
+            String valueStatement = Joiner.on(", ").join(Collections.nCopies(onlinePlayers.size(), "?"));
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, votes, (DATE(last_vote) = CURRENT_DATE()) AS has_voted_today FROM " + tableName + " WHERE uuid IN (" + valueStatement + ")")) {
+                for (int i = 0; i < onlinePlayers.size(); i++) {
+                    statement.setString(i + 1, onlinePlayers.get(i).toString());
+                }
+                List<UUID> found = new ArrayList<>();
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        UUID uuid = UUID.fromString(resultSet.getString(1));
+                        found.add(uuid);
+                        if (resultSet.getBoolean(3)) {
+                            continue; // already voted today
+                        }
+                        PlayerVotes pv = new PlayerVotes(UUID.fromString(resultSet.getString(1)), resultSet.getInt(2), PlayerVotes.Type.CURRENT);
+                        votes.add(pv);
+                    }
+                }
+
+                // We may have players without a voting record. Add these missing players.
+                List<UUID> missing = new ArrayList<>(onlinePlayers);
+                missing.removeAll(found);
+                for (UUID uuid : missing) {
+                    votes.add(new PlayerVotes(uuid, 0, PlayerVotes.Type.CURRENT));
+                }
+            }
+            return votes;
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to batch-get votes", e);
+            return ImmutableList.of();
         }
     }
 
