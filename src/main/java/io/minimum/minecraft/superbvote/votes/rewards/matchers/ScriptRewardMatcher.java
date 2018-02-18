@@ -3,6 +3,10 @@ package io.minimum.minecraft.superbvote.votes.rewards.matchers;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
+import lombok.NonNull;
+import lombok.Value;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -45,13 +49,24 @@ public class ScriptRewardMatcher implements RewardMatcher {
 
     @Override
     public boolean matches(Vote vote, PlayerVotes pv) {
+        VoteContext ctx = new VoteContext(
+                vote,
+                pv.getType() == PlayerVotes.Type.FUTURE ? pv.getVotes() - 1 : pv.getVotes()
+        );
         Invocable invocable = (Invocable) engine;
         try {
-            Object result = invocable.invokeFunction("matchVote", vote);
+            Object result = invocable.invokeFunction("matchVote", ctx);
             return result != null && (result.equals(Boolean.TRUE) || result.equals(0));
         } catch (ScriptException | NoSuchMethodException e) {
             SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Unable to execute 'matchVote' function in " + path, e);
             return false;
         }
+    }
+
+    @Value
+    public static class VoteContext { // Don't try making this private. Nashorn doesn't like it.
+        @NonNull
+        private final Vote vote;
+        private final int currentVotes;
     }
 }
