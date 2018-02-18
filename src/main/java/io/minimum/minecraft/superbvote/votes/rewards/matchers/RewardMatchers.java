@@ -36,6 +36,7 @@ public class RewardMatchers {
         if (chanceFracObject != null && chanceFracObject instanceof Integer) {
             if ((int) chanceFracObject < 1) {
                 SuperbVote.getPlugin().getLogger().severe("Fraction " + chanceFracObject + " is not valid; must be 1 or more.");
+                matchers.add(StaticRewardMatcher.NEVER_MATCH);
             } else {
                 matchers.add(new ChanceFractionalRewardMatcher((int) chanceFracObject));
             }
@@ -44,6 +45,7 @@ public class RewardMatchers {
                     "retain the current behavior, or migrate to a percentage matcher by specifying 'chance-percentage' in your configuration.");
             if ((int) chanceObject < 1) {
                 SuperbVote.getPlugin().getLogger().severe("Fraction " + chanceObject + " is not valid; must be 1 or more.");
+                matchers.add(StaticRewardMatcher.NEVER_MATCH);
             } else {
                 matchers.add(new ChanceFractionalRewardMatcher((int) chanceObject));
             }
@@ -57,6 +59,7 @@ public class RewardMatchers {
                 matchers.add(new ChancePercentageRewardMatcher(chancePerInt));
             } else {
                 SuperbVote.getPlugin().getLogger().severe("Percentage " + chancePerInt + " is not valid; must be between 1 and 99.");
+                matchers.add(StaticRewardMatcher.NEVER_MATCH);
             }
         }
 
@@ -89,6 +92,7 @@ public class RewardMatchers {
                 matchers.add(new ScriptRewardMatcher(Paths.get(script)));
             } catch (IOException | ScriptException e) {
                 SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to parse script " + script, e);
+                matchers.add(StaticRewardMatcher.NEVER_MATCH);
             }
         }
 
@@ -114,6 +118,7 @@ public class RewardMatchers {
             }
         } else if ((group != null && !group.isEmpty()) || !groups.isEmpty()) {
             SuperbVote.getPlugin().getLogger().warning("You can't use the 'group' or 'groups' matcher without having Vault installed.");
+            matchers.add(StaticRewardMatcher.NEVER_MATCH);
         }
 
         return matchers;
