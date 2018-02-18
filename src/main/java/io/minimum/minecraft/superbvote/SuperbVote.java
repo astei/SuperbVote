@@ -8,6 +8,7 @@ import io.minimum.minecraft.superbvote.signboard.TopPlayerSignListener;
 import io.minimum.minecraft.superbvote.signboard.TopPlayerSignStorage;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
+import io.minimum.minecraft.superbvote.util.SpigotUpdater;
 import io.minimum.minecraft.superbvote.util.VoteCooldownHandler;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
 import io.minimum.minecraft.superbvote.votes.VoteReminder;
@@ -81,6 +82,10 @@ public class SuperbVote extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             getLogger().info("Using clip's PlaceholderAPI to provide extra placeholders.");
         }
+
+        SpigotUpdater updater = new SpigotUpdater();
+        getServer().getScheduler().runTaskAsynchronously(this, updater);
+        getServer().getPluginManager().registerEvents(updater, this);
     }
 
     @Override
