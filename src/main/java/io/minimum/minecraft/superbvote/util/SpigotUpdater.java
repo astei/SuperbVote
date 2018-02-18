@@ -22,6 +22,7 @@ public class SpigotUpdater implements Runnable, Listener {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(5000);
+        connection.setRequestProperty("User-Agent", "SuperbVote/" + SuperbVote.getPlugin().getDescription().getVersion());
         String version;
         try (InputStream is = connection.getInputStream()) {
             version = new String(ByteStreams.toByteArray(is), StandardCharsets.UTF_8);
