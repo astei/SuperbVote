@@ -22,7 +22,7 @@ public class SuperbVoteListener implements Listener {
     @EventHandler
     public void onVote(final VotifierEvent event) {
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
-            OfflinePlayer op = Bukkit.getPlayerExact(event.getVote().getUsername());
+            OfflinePlayer op = Bukkit.getOfflinePlayer(event.getVote().getUsername());
             String worldName = null;
             if (op.isOnline()) {
                 worldName = op.getPlayer().getWorld().getName();
