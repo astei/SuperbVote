@@ -80,7 +80,7 @@ public class MysqlVoteStorage implements VoteStorage {
     }
 
     @Override
-    public void issueVote(Vote vote) {
+    public void addVote(Vote vote) {
         if (readOnly)
             return;
 

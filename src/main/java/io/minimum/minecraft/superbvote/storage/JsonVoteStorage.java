@@ -82,7 +82,7 @@ public class JsonVoteStorage implements VoteStorage {
     }
 
     @Override
-    public void issueVote(Vote vote) {
+    public void addVote(Vote vote) {
         Preconditions.checkNotNull(vote, "vote");
         rwl.writeLock().lock();
         try {

@@ -63,7 +63,7 @@ public class SuperbVoteListener implements Listener {
             SuperbVote.getPlugin().getQueuedVotes().addVote(vote);
         } else {
             if (!vote.isFakeVote() || SuperbVote.getPlugin().getConfig().getBoolean("votes.process-fake-votes")) {
-                SuperbVote.getPlugin().getVoteStorage().issueVote(vote);
+                SuperbVote.getPlugin().getVoteStorage().addVote(vote);
             }
 
             if (!wasQueued) {
