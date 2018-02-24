@@ -83,22 +83,13 @@ public class JsonVoteStorage implements VoteStorage {
 
     @Override
     public void issueVote(Vote vote) {
-        addVote(vote.getUuid(), vote.getReceived().getTime());
-    }
-
-    @Override
-    public void addVote(UUID player) {
-        addVote(player, System.currentTimeMillis());
-    }
-
-    private void addVote(UUID player, long ts) {
-        Preconditions.checkNotNull(player, "player");
+        Preconditions.checkNotNull(vote, "player");
         rwl.writeLock().lock();
         try {
-            PlayerRecord rec = voteCounts.putIfAbsent(player, new PlayerRecord(1, ts));
+            PlayerRecord rec = voteCounts.putIfAbsent(vote.getUuid(), new PlayerRecord(1, vote.getReceived().getTime()));
             if (rec != null) {
                 rec.votes++;
-                rec.lastVoted = ts;
+                rec.lastVoted = vote.getReceived().getTime();
             }
         } finally {
             rwl.writeLock().unlock();
@@ -114,11 +105,7 @@ public class JsonVoteStorage implements VoteStorage {
             if (votes == 0) {
                 voteCounts.remove(player);
             } else {
-                PlayerRecord rec = voteCounts.putIfAbsent(player, new PlayerRecord(votes, ts));
-                if (rec != null) {
-                    rec.votes = votes;
-                    rec.lastVoted = ts;
-                }
+                voteCounts.put(player, new PlayerRecord(votes, ts));
             }
         } finally {
             rwl.writeLock().unlock();
@@ -169,7 +156,7 @@ public class JsonVoteStorage implements VoteStorage {
         rwl.readLock().lock();
         try {
             if (voteCounts.isEmpty()) return 0;
-            return Math.max(1, (int) Math.ceil(voteCounts.size() / amount));
+            return Math.max(1, (int) Math.ceil(voteCounts.size() / (double) amount));
         } finally {
             rwl.readLock().unlock();
         }

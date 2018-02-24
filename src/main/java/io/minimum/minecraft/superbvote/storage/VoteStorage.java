@@ -9,8 +9,6 @@ import java.util.UUID;
 public interface VoteStorage {
     void issueVote(Vote vote);
 
-    void addVote(UUID player);
-
     default void setVotes(UUID player, int votes) {
         setVotes(player, votes, System.currentTimeMillis());
     }

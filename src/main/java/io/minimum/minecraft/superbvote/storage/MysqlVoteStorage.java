@@ -81,37 +81,32 @@ public class MysqlVoteStorage implements VoteStorage {
 
     @Override
     public void issueVote(Vote vote) {
-        addVote(vote.getUuid(), vote.getName());
-    }
-
-    @Override
-    public void addVote(UUID player) {
-        addVote(player, null);
-    }
-
-    public void addVote(UUID player, String knownName) {
         if (readOnly)
             return;
 
-        Preconditions.checkNotNull(player, "player");
+        Preconditions.checkNotNull(vote, "vote");
         try (Connection connection = dbPool.getConnection()) {
-            if (knownName != null) {
-                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes) VALUES (?, ?, 1)" +
-                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_name = ?, last_vote = CURRENT_TIMESTAMP()")) {
-                    statement.setString(1, player.toString());
-                    statement.setString(2, knownName);
-                    statement.setString(3, knownName);
+            if (vote.getName() != null) {
+                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes, last_vote) VALUES (?, ?, 1, ?)" +
+                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_name = ?, last_vote = ?")) {
+                    statement.setString(1, vote.getUuid().toString());
+                    statement.setString(2, vote.getName());
+                    statement.setTimestamp(3, new Timestamp(vote.getReceived().getTime()));
+                    statement.setString(4, vote.getName());
+                    statement.setTimestamp(5, new Timestamp(vote.getReceived().getTime()));
                     statement.executeUpdate();
                 }
             } else {
-                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes) VALUES (?, NULL, 1)" +
-                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_vote = CURRENT_TIMESTAMP()")) {
-                    statement.setString(1, player.toString());
+                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tableName + " (uuid, last_name, votes, last_vote) VALUES (?, NULL, 1, ?)" +
+                        " ON DUPLICATE KEY UPDATE votes = votes + 1, last_vote = ?")) {
+                    statement.setString(1, vote.getUuid().toString());
+                    statement.setTimestamp(2, new Timestamp(vote.getReceived().getTime()));
+                    statement.setTimestamp(3, new Timestamp(vote.getReceived().getTime()));
                     statement.executeUpdate();
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Unable to add vote for " + player.toString(), e);
+            throw new RuntimeException("Unable to add vote for " + vote.getUuid().toString(), e);
         }
     }
 
