@@ -83,7 +83,7 @@ public class JsonVoteStorage implements VoteStorage {
 
     @Override
     public void issueVote(Vote vote) {
-        Preconditions.checkNotNull(vote, "player");
+        Preconditions.checkNotNull(vote, "vote");
         rwl.writeLock().lock();
         try {
             PlayerRecord rec = voteCounts.putIfAbsent(vote.getUuid(), new PlayerRecord(1, vote.getReceived().getTime()));
