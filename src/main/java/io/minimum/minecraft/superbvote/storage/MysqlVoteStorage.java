@@ -37,44 +37,46 @@ public class MysqlVoteStorage implements VoteStorage {
         int ver = dbInfo.getInt("db_version", 1);
         boolean isUpdated = false;
 
-        try (Connection connection = dbPool.getConnection()) {
-            try (ResultSet t = connection.getMetaData().getTables(null, null, tableName, null)) {
-                if (!t.next()) {
-                    try (Statement statement = connection.createStatement()) {
-                        statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT, last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
-                        // This may speed up leaderboards
-                        statement.executeUpdate("CREATE INDEX uuid_votes_idx ON " + tableName + " (uuid, votes)");
-                    }
-                    isUpdated = true;
-                } else {
-                    if (ver < TABLE_VERSION_CURRENT) {
-                        SuperbVote.getPlugin().getLogger().log(Level.INFO, "Migrating database from version " + ver + " to " + TABLE_VERSION_CURRENT + ", this may take a while...");
-                        // We may need to add in the new last_vote column
-                        if (ver < TABLE_VERSION_2) {
-                            try (Statement statement = connection.createStatement()) {
-                                statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN last_vote TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-                            }
-                            isUpdated = true;
+        if (!readOnly) {
+            try (Connection connection = dbPool.getConnection()) {
+                try (ResultSet t = connection.getMetaData().getTables(null, null, tableName, null)) {
+                    if (!t.next()) {
+                        try (Statement statement = connection.createStatement()) {
+                            statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT, last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+                            // This may speed up leaderboards
+                            statement.executeUpdate("CREATE INDEX uuid_votes_idx ON " + tableName + " (uuid, votes)");
                         }
-                        if (ver < TABLE_VERSION_3) {
-                            try (Statement statement = connection.createStatement()) {
-                                statement.executeUpdate("ALTER TABLE " + tableName + " CHANGE last_vote last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
+                        isUpdated = true;
+                    } else {
+                        if (ver < TABLE_VERSION_CURRENT) {
+                            SuperbVote.getPlugin().getLogger().log(Level.INFO, "Migrating database from version " + ver + " to " + TABLE_VERSION_CURRENT + ", this may take a while...");
+                            // We may need to add in the new last_vote column
+                            if (ver < TABLE_VERSION_2) {
+                                try (Statement statement = connection.createStatement()) {
+                                    statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN last_vote TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                                }
+                                isUpdated = true;
                             }
-                            isUpdated = true;
+                            if (ver < TABLE_VERSION_3) {
+                                try (Statement statement = connection.createStatement()) {
+                                    statement.executeUpdate("ALTER TABLE " + tableName + " CHANGE last_vote last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
+                                }
+                                isUpdated = true;
+                            }
                         }
                     }
                 }
+            } catch (SQLException e) {
+                SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to initialize database", e);
             }
-        } catch (SQLException e) {
-            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to initialize database", e);
-        }
 
-        if (isUpdated) {
-            dbInfo.set("db_version", TABLE_VERSION_CURRENT);
-            try {
-                dbInfo.save(new File(SuperbVote.getPlugin().getDataFolder(), "db_version.yml"));
-            } catch (IOException e) {
-                SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to save DB info", e);
+            if (isUpdated) {
+                dbInfo.set("db_version", TABLE_VERSION_CURRENT);
+                try {
+                    dbInfo.save(new File(SuperbVote.getPlugin().getDataFolder(), "db_version.yml"));
+                } catch (IOException e) {
+                    SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to save DB info", e);
+                }
             }
         }
     }
