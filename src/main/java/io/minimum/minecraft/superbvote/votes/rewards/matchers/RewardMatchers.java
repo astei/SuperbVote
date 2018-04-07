@@ -123,6 +123,10 @@ public class RewardMatchers {
 
         // default: <true|false>
         if (section.getBoolean("default")) {
+            if (!matchers.isEmpty()) {
+                SuperbVote.getPlugin().getLogger().warning("Default matchers can not be used with any other matchers. SuperbVote will remove all other matchers.");
+                matchers.clear();
+            }
             matchers.add(StaticRewardMatcher.ALWAYS_MATCH);
         }
 
