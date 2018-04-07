@@ -121,6 +121,11 @@ public class RewardMatchers {
             matchers.add(StaticRewardMatcher.NEVER_MATCH);
         }
 
+        // default: <true|false>
+        if (section.getBoolean("default")) {
+            matchers.add(StaticRewardMatcher.ALWAYS_MATCH);
+        }
+
         return matchers;
     }
 

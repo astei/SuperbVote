@@ -16,10 +16,7 @@ import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
-import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChanceFractionalRewardMatcher;
-import io.minimum.minecraft.superbvote.votes.rewards.matchers.ChancePercentageRewardMatcher;
-import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatcher;
-import io.minimum.minecraft.superbvote.votes.rewards.matchers.RewardMatchers;
+import io.minimum.minecraft.superbvote.votes.rewards.matchers.*;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -68,6 +65,16 @@ public class SuperbVoteConfiguration {
 
         if (rewards.isEmpty()) {
             throw new RuntimeException("No rewards defined.");
+        }
+
+        long defaultRewardCount = rewards.stream()
+                .filter(r -> r.getRewardMatchers().contains(StaticRewardMatcher.ALWAYS_MATCH) || r.getRewardMatchers().isEmpty())
+                .count();
+        if (defaultRewardCount == 0) {
+            throw new RuntimeException("No default reward was defined. To set a default reward, set default: true in one of your reward if blocks.");
+        }
+        if (defaultRewardCount > 1) {
+            throw new RuntimeException("Multiple default rewards are defined. Only one default reward can be used.");
         }
 
         reminderMessage = VoteMessages.from(configuration, "vote-reminder.message");
