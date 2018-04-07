@@ -74,7 +74,7 @@ public class SuperbVoteConfiguration {
             throw new RuntimeException("No default reward was defined. To set a default reward, set default: true in one of your reward if blocks.");
         }
         if (defaultRewardCount > 1) {
-            throw new RuntimeException("Multiple default rewards are defined. Only one default reward can be used.");
+            throw new RuntimeException("Multiple default rewards are defined. Only one default reward can be used. (You may also want to check the spelling in your reward blocks.)");
         }
 
         reminderMessage = VoteMessages.from(configuration, "vote-reminder.message");
