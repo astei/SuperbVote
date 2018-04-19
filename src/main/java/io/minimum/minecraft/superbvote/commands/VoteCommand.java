@@ -21,8 +21,11 @@ public class VoteCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
             return true;
         }
-        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> message.sendAsReminder((Player) sender,
-                new MessageContext(null, SuperbVote.getPlugin().getVoteStorage().getVotes(((Player) sender).getUniqueId()), (Player) sender)));
+        Player player = (Player) sender;
+        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+            MessageContext ctx = new MessageContext(null, SuperbVote.getPlugin().getVoteStorage().getVotes(player.getUniqueId()), player);
+            message.sendAsReminder(player, ctx);
+        });
         return true;
     }
 }

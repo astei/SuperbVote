@@ -9,7 +9,8 @@ import io.minimum.minecraft.superbvote.signboard.TopPlayerSignStorage;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.SpigotUpdater;
-import io.minimum.minecraft.superbvote.util.VoteCooldownHandler;
+import io.minimum.minecraft.superbvote.util.cooldowns.CooldownHandler;
+import io.minimum.minecraft.superbvote.util.cooldowns.VoteServiceCooldown;
 import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
 import io.minimum.minecraft.superbvote.votes.VoteReminder;
 import lombok.Getter;
@@ -30,7 +31,7 @@ public class SuperbVote extends JavaPlugin {
     @Getter
     private ScoreboardHandler scoreboardHandler;
     @Getter
-    private final VoteCooldownHandler cooldownHandler = new VoteCooldownHandler();
+    private VoteServiceCooldown voteServiceCooldown;
     @Getter
     private TopPlayerSignStorage topPlayerSignStorage;
 
@@ -53,6 +54,7 @@ public class SuperbVote extends JavaPlugin {
         }
 
         scoreboardHandler = new ScoreboardHandler();
+        voteServiceCooldown = new VoteServiceCooldown(getConfig().getInt("votes.cooldown-per-service", 3600));
 
         topPlayerSignStorage = new TopPlayerSignStorage();
         try {
@@ -103,6 +105,7 @@ public class SuperbVote extends JavaPlugin {
         reloadConfig();
         configuration = new SuperbVoteConfiguration(getConfig());
         scoreboardHandler.reload();
+        voteServiceCooldown = new VoteServiceCooldown(getConfig().getInt("votes.cooldown-per-service", 3600));
         getServer().getScheduler().runTaskAsynchronously(this, getScoreboardHandler()::doPopulate);
         getCommand("vote").setExecutor(configuration.getVoteCommand());
     }

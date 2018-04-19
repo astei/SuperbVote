@@ -54,14 +54,15 @@ public class TopPlayerSignUpdater implements Runnable {
                     worldSign.setLine(i, "???");
                 }
             } else {
-                for (int i = 0; i < Math.min(4, SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().size()); i++) {
+                int lines = SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().size();
+                for (int i = 0; i < Math.min(4, lines); i++) {
                     PlainStringMessage m = SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().get(i);
                     PlayerVotes pv = top.get(sign.getPosition() - 1);
                     worldSign.setLine(i, m.getWithOfflinePlayer(null,
                             new MessageContext(null, pv, Bukkit.getOfflinePlayer(pv.getUuid())))
                             .replace("%num%", Integer.toString(sign.getPosition())));
                 }
-                for (int i = SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().size(); i < 4; i++) {
+                for (int i = lines; i < 4; i++) {
                     worldSign.setLine(i, "");
                 }
             }

@@ -156,7 +156,7 @@ public class JsonVoteStorage implements VoteStorage {
         rwl.readLock().lock();
         try {
             if (voteCounts.isEmpty()) return 0;
-            return Math.max(1, (int) Math.ceil(voteCounts.size() / (double) amount));
+            return (int) Math.ceil(voteCounts.size() / (double) amount);
         } finally {
             rwl.readLock().unlock();
         }

@@ -34,7 +34,7 @@ public class SuperbVoteListener implements Listener {
                     event.getVote().getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE), worldName, new Date());
 
             if (!vote.isFakeVote()) {
-                if (SuperbVote.getPlugin().getCooldownHandler().triggerCooldown(vote)) {
+                if (SuperbVote.getPlugin().getVoteServiceCooldown().triggerCooldown(vote)) {
                     SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
                             vote.getServiceName() + ") due to service cooldown.");
                     return;
