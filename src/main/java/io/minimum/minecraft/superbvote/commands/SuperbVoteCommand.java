@@ -2,6 +2,7 @@ package io.minimum.minecraft.superbvote.commands;
 
 import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.configuration.TextLeaderboardConfiguration;
 import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.migration.GAListenerMigration;
 import io.minimum.minecraft.superbvote.migration.Migration;
@@ -127,23 +128,28 @@ public class SuperbVoteCommand implements CommandExecutor {
                     case "text":
                     default:
                         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
-                            int c = SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration().getPerPage();
+                            TextLeaderboardConfiguration config = SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration();
+                            int c = config.getPerPage();
                             int from = c * page;
                             List<PlayerVotes> leaderboard = SuperbVote.getPlugin().getVoteStorage().getTopVoters(c, page);
                             if (leaderboard.isEmpty()) {
                                 sender.sendMessage(ChatColor.RED + "No entries found.");
                                 return;
                             }
-                            SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration().getHeader().sendWithNothing(sender);
+                            sender.sendMessage(config.getHeader().getBaseMessage());
                             for (int i = 0; i < leaderboard.size(); i++) {
                                 String posStr = Integer.toString(from + i + 1);
-                                sender.sendMessage(SuperbVote.getPlugin().getConfiguration().getTextLeaderboardConfiguration()
+                                sender.sendMessage(config
                                         .getEntryText()
                                         .getWithOfflinePlayer(sender, new MessageContext(null, leaderboard.get(i), Bukkit.getOfflinePlayer(leaderboard.get(i).getUuid())))
                                         .replaceAll("%num%", posStr));
                             }
                             int availablePages = SuperbVote.getPlugin().getVoteStorage().getPagesAvailable(c);
-                            sender.sendMessage(ChatColor.GRAY + "(page " + (page + 1) + "/" + availablePages + ")");
+                            sender.sendMessage(config
+                                    .getPageNumberText()
+                                    .getBaseMessage()
+                                    .replaceAll("%page%", Integer.toString(page + 1))
+                                    .replaceAll("%total%", Integer.toString(availablePages)));
                         });
                         break;
                     case "scoreboard":

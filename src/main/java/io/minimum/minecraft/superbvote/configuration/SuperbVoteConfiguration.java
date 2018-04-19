@@ -90,7 +90,8 @@ public class SuperbVoteConfiguration {
         textLeaderboardConfiguration = new TextLeaderboardConfiguration(
                 configuration.getInt("leaderboard.text.per-page", 10),
                 OfflineVoteMessages.from(configuration.getConfigurationSection("leaderboard.text"), "header"),
-                OfflineVoteMessages.from(configuration.getConfigurationSection("leaderboard.text"), "entry")
+                OfflineVoteMessages.from(configuration.getConfigurationSection("leaderboard.text"), "entry"),
+                OfflineVoteMessages.from(configuration.getConfigurationSection("leaderboard.text"), "page")
         );
 
         topPlayerSignsConfiguration = new TopPlayerSignsConfiguration(

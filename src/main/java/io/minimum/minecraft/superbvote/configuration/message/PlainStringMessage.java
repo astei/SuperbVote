@@ -24,8 +24,8 @@ public class PlainStringMessage extends MessageBase implements VoteMessage, Offl
     }
 
     @Override
-    public void sendWithNothing(CommandSender to) {
-        to.sendMessage(message);
+    public String getBaseMessage() {
+        return message;
     }
 
     @Override

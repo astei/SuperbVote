@@ -8,4 +8,5 @@ public class TextLeaderboardConfiguration {
     private final int perPage;
     private final OfflineVoteMessage header;
     private final OfflineVoteMessage entryText;
+    private final OfflineVoteMessage pageNumberText;
 }

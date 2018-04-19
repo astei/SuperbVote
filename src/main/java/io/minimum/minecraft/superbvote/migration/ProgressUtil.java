@@ -2,7 +2,7 @@ package io.minimum.minecraft.superbvote.migration;
 
 public class ProgressUtil {
     private static final int[] PROGRESS_BY = new int[]{
-            500, 100, 50
+            500, 50
     };
 
     static int findBestDivisor(int records) {
