@@ -152,49 +152,6 @@ public class SuperbVoteCommand implements CommandExecutor {
                 }
 
                 return true;
-            case "pastetop":
-                if (!sender.hasPermission("superbvote.admin")) {
-                    sender.sendMessage(ChatColor.RED + "You can't do this.");
-                    return true;
-                }
-
-                if (args.length != 2) {
-                    sender.sendMessage(ChatColor.RED + "Need to specify an argument.");
-                    sender.sendMessage(ChatColor.RED + "/sv pastetop <amount>");
-                    sender.sendMessage(ChatColor.RED + "Pastes the top <amount> players.");
-                    return true;
-                }
-
-                int amt;
-                try {
-                    amt = Integer.parseInt(args[1]);
-                } catch (NumberFormatException e) {
-                    sender.sendMessage(ChatColor.RED + "Amount is not valid.");
-                    return true;
-                }
-
-                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
-                    List<PlayerVotes> leaderboard = SuperbVote.getPlugin().getVoteStorage().getTopVoters(amt, 0);
-                    if (leaderboard.isEmpty()) {
-                        sender.sendMessage(ChatColor.RED + "No entries found.");
-                        return;
-                    }
-                    List<String> translated = leaderboard.stream()
-                            .map(e -> Bukkit.getOfflinePlayer(e.getUuid()).getName())
-                            .collect(Collectors.toList());
-                    StringBuilder text = new StringBuilder();
-                    for (int i = 0; i < leaderboard.size(); i++) {
-                        text.append(i + 1).append(". ").append(translated.get(i)).append(" - ").append(leaderboard.get(i).getVotes()).append('\n');
-                    }
-                    try {
-                        String url = PasteSubmission.submitPaste(text.toString());
-                        sender.sendMessage(ChatColor.GREEN + "Leaderboard pasted at " + url);
-                    } catch (IOException e) {
-                        sender.sendMessage(ChatColor.RED + "Unable to paste the leaderboard.");
-                        SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to paste the leaderboard", e);
-                    }
-                });
-                return true;
             case "fakevote":
                 if (!sender.hasPermission("superbvote.admin")) {
                     sender.sendMessage(ChatColor.RED + "You can't do this.");
