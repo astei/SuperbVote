@@ -43,9 +43,6 @@ public class SuperbVoteCommand implements CommandExecutor {
         }
 
         if (sender.hasPermission("superbvote.admin")) {
-            sender.sendMessage(ChatColor.GRAY + ChatColor.BOLD.toString() + "/sv pastetop <amount>");
-            sender.sendMessage(ChatColor.GRAY + "Pastes the top [amount] players on the voting leaderboard.");
-
             sender.sendMessage(ChatColor.GRAY + ChatColor.BOLD.toString() + "/sv fakevote <player> [service]");
             sender.sendMessage(ChatColor.GRAY + "Issues a fake vote for the specified player.");
 
