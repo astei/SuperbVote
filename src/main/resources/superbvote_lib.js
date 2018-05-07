@@ -13,3 +13,14 @@ function callSync(f) {
     var future = server.scheduler.callSyncMethod(pl, f);
     return future.get();
 }
+
+// Assorted Java helpers
+
+function _isTruthy(arg) {
+    // Truthiness: a concept that JavaScript introduced well before Stephen Colbert told America about it
+    // back in 2005.
+    //
+    // JavaScript drives me to drink. Colbert gives me a good laugh.
+    // http://www.cc.com/video-clips/63ite2/the-colbert-report-the-word---truthiness
+    return !!arg;
+}

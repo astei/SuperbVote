@@ -56,7 +56,8 @@ public class ScriptRewardMatcher implements RewardMatcher {
         Invocable invocable = (Invocable) engine;
         try {
             Object result = invocable.invokeFunction("matchVote", ctx);
-            return result != null && (result.equals(Boolean.TRUE) || result.equals(0));
+            Object isTruthy = invocable.invokeFunction("_isTruthy", result);
+            return isTruthy != null && (Boolean) isTruthy;
         } catch (ScriptException | NoSuchMethodException e) {
             SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Unable to execute 'matchVote' function in " + path, e);
             return false;
