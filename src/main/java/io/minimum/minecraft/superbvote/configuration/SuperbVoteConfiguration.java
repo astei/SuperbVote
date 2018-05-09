@@ -148,7 +148,7 @@ public class SuperbVoteConfiguration {
     }
 
     public static String replaceCommandPlaceholders(String text, Vote vote) {
-        return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName());
+        return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName()).replaceAll("%player_uuid%", vote.getUuid().toString());
     }
 
     public VoteStorage initializeVoteStorage() throws IOException {
