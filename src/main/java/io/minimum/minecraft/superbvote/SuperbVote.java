@@ -15,6 +15,7 @@ import io.minimum.minecraft.superbvote.votes.SuperbVoteListener;
 import io.minimum.minecraft.superbvote.votes.VoteReminder;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +35,7 @@ public class SuperbVote extends JavaPlugin {
     private VoteServiceCooldown voteServiceCooldown;
     @Getter
     private TopPlayerSignStorage topPlayerSignStorage;
+    private BukkitTask voteReminderTask;
 
     @Override
     public void onEnable() {
@@ -77,7 +79,7 @@ public class SuperbVote extends JavaPlugin {
         String text = getConfig().getString("vote-reminder.message");
         if (text != null && !text.isEmpty()) {
             if (r > 0) {
-                getServer().getScheduler().runTaskTimerAsynchronously(this, new VoteReminder(), 20 * r, 20 * r);
+                voteReminderTask = getServer().getScheduler().runTaskTimerAsynchronously(this, new VoteReminder(), 20 * r, 20 * r);
             }
         }
 
@@ -92,6 +94,10 @@ public class SuperbVote extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (voteReminderTask != null) {
+            voteReminderTask.cancel();
+            voteReminderTask = null;
+        }
         voteStorage.save();
         queuedVotes.save();
         try {
@@ -108,6 +114,16 @@ public class SuperbVote extends JavaPlugin {
         voteServiceCooldown = new VoteServiceCooldown(getConfig().getInt("votes.cooldown-per-service", 3600));
         getServer().getScheduler().runTaskAsynchronously(this, getScoreboardHandler()::doPopulate);
         getCommand("vote").setExecutor(configuration.getVoteCommand());
+
+        if (voteReminderTask != null) {
+            voteReminderTask.cancel();
+            voteReminderTask = null;
+        }
+        int r = getConfig().getInt("vote-reminder.repeat");
+        String text = getConfig().getString("vote-reminder.message");
+        if (text != null && !text.isEmpty() && r > 0) {
+            voteReminderTask = getServer().getScheduler().runTaskTimerAsynchronously(this, new VoteReminder(), 20 * r, 20 * r);
+        }
     }
 
     public ClassLoader _exposeClassLoader() {
