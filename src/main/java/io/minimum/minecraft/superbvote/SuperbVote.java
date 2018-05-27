@@ -8,6 +8,7 @@ import io.minimum.minecraft.superbvote.signboard.TopPlayerSignListener;
 import io.minimum.minecraft.superbvote.signboard.TopPlayerSignStorage;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
+import io.minimum.minecraft.superbvote.util.BrokenNag;
 import io.minimum.minecraft.superbvote.util.SpigotUpdater;
 import io.minimum.minecraft.superbvote.util.cooldowns.CooldownHandler;
 import io.minimum.minecraft.superbvote.util.cooldowns.VoteServiceCooldown;
@@ -42,6 +43,10 @@ public class SuperbVote extends JavaPlugin {
         plugin = this;
         saveDefaultConfig();
         configuration = new SuperbVoteConfiguration(getConfig());
+
+        if (configuration.isConfigurationError()) {
+            BrokenNag.nag(getServer().getConsoleSender());
+        }
 
         try {
             voteStorage = configuration.initializeVoteStorage();

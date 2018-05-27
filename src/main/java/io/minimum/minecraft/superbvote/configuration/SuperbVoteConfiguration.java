@@ -26,12 +26,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class SuperbVoteConfiguration {
     private final ConfigurationSection configuration;
     @Getter
-    private final List<VoteReward> rewards;
+    private final List<VoteReward> rewards = new ArrayList<>();
     @Getter
     private final VoteMessage reminderMessage;
     @Getter
@@ -40,41 +41,53 @@ public class SuperbVoteConfiguration {
     private final TextLeaderboardConfiguration textLeaderboardConfiguration;
     @Getter
     private final TopPlayerSignsConfiguration topPlayerSignsConfiguration;
+    @Getter
+    private boolean configurationError = false;
 
     private static final List<String> SUPPORTED_STORAGE = ImmutableList.of("json", "mysql");
 
     public SuperbVoteConfiguration(ConfigurationSection section) {
         this.configuration = section;
 
-        rewards = section.getList("rewards").stream()
-                .filter(s -> s instanceof Map)
-                .map(s -> {
-                    Map<?, ?> map = (Map<?, ?>) s;
-                    MemoryConfiguration c = new MemoryConfiguration();
-                    for (Map.Entry<?, ?> entry : map.entrySet()) {
-                        if (entry.getKey().equals("if") && entry.getValue() instanceof Map) {
-                            c.createSection("if", (Map<?, ?>) entry.getValue());
-                        } else {
-                            c.set(entry.getKey().toString(), entry.getValue());
+        try {
+            section.getList("rewards").stream()
+                    .filter(s -> s instanceof Map)
+                    .map(s -> {
+                        Map<?, ?> map = (Map<?, ?>) s;
+                        MemoryConfiguration c = new MemoryConfiguration();
+                        for (Map.Entry<?, ?> entry : map.entrySet()) {
+                            if (entry.getKey().equals("if") && entry.getValue() instanceof Map) {
+                                c.createSection("if", (Map<?, ?>) entry.getValue());
+                            } else {
+                                c.set(entry.getKey().toString(), entry.getValue());
+                            }
                         }
-                    }
-                    return c;
-                })
-                .map(this::deserializeReward)
-                .collect(Collectors.toList());
+                        return c;
+                    })
+                    .map(this::deserializeReward)
+                    .forEach(rewards::add);
+        } catch (Exception e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to load your reward configuration.", e);
+            SuperbVote.getPlugin().getLogger().severe("SuperbVote will be disabled until your configuration is fixed.");
+            configurationError = true;
+        }
 
-        if (rewards.isEmpty()) {
-            throw new RuntimeException("No rewards defined.");
+        if (rewards.isEmpty() && !configurationError) {
+            SuperbVote.getPlugin().getLogger().severe("Your configuration does not specify any rewards. SuperbVote is unable to process votes if no reward is present.");
+            configurationError = true;
         }
 
         long defaultRewardCount = rewards.stream()
                 .filter(r -> r.getRewardMatchers().contains(StaticRewardMatcher.ALWAYS_MATCH) || r.getRewardMatchers().isEmpty())
                 .count();
-        if (defaultRewardCount == 0) {
-            throw new RuntimeException("No default reward was defined. To set a default reward, set default: true in one of your reward if blocks.");
-        }
-        if (defaultRewardCount > 1) {
-            throw new RuntimeException("Multiple default rewards are defined. Only one default reward can be used. (You may also want to check the spelling in your reward blocks.)");
+        if (defaultRewardCount == 0 && !configurationError) {
+            SuperbVote.getPlugin().getLogger().severe("No default reward was defined. SuperbVote is unable to process votes if no default reward is present.");
+            SuperbVote.getPlugin().getLogger().severe("To set a default reward, set default: true in one of your reward if blocks.");
+            configurationError = true;
+        } else if (defaultRewardCount > 1 && !configurationError) {
+            SuperbVote.getPlugin().getLogger().severe("Multiple default rewards are defined. SuperbVote is unable to process votes.");
+            SuperbVote.getPlugin().getLogger().severe("Hint: You may want to check the spelling in your 'if' blocks. (Further information has been logged.)");
+            configurationError = true;
         }
 
         reminderMessage = VoteMessages.from(configuration, "vote-reminder.message");

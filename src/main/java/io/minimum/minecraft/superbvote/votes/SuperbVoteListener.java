@@ -6,10 +6,13 @@ import io.minimum.minecraft.superbvote.commands.SuperbVoteCommand;
 import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.signboard.TopPlayerSignFetcher;
 import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
+import io.minimum.minecraft.superbvote.util.BrokenNag;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -21,6 +24,11 @@ import java.util.logging.Level;
 public class SuperbVoteListener implements Listener {
     @EventHandler
     public void onVote(final VotifierEvent event) {
+        if (SuperbVote.getPlugin().getConfiguration().isConfigurationError()) {
+            SuperbVote.getPlugin().getLogger().severe("Refusing to process vote because your configuration is invalid. Please check your logs.");
+            return;
+        }
+
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
             OfflinePlayer op = Bukkit.getOfflinePlayer(event.getVote().getUsername());
             String worldName = null;
@@ -79,6 +87,14 @@ public class SuperbVoteListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
+        if (SuperbVote.getPlugin().getConfiguration().isConfigurationError()) {
+            if (event.getPlayer().hasPermission("superbvote.admin")) {
+                Player player = event.getPlayer();
+                Bukkit.getScheduler().runTaskLater(SuperbVote.getPlugin(), () -> BrokenNag.nag(player), 40);
+            }
+            return;
+        }
+
         Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
             // Update names in MySQL, if it is being used.
             if (SuperbVote.getPlugin().getVoteStorage() instanceof MysqlVoteStorage) {

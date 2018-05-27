@@ -9,6 +9,7 @@ import io.minimum.minecraft.superbvote.migration.Migration;
 import io.minimum.minecraft.superbvote.migration.ProgressListener;
 import io.minimum.minecraft.superbvote.migration.SuperbVoteJsonFileMigration;
 import io.minimum.minecraft.superbvote.signboard.TopPlayerSignFetcher;
+import io.minimum.minecraft.superbvote.util.BrokenNag;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import lombok.Data;
 import org.bukkit.Bukkit;
@@ -59,6 +60,14 @@ public class SuperbVoteCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
+        if (SuperbVote.getPlugin().getConfiguration().isConfigurationError()) {
+            // Nag, except on /sv reload.
+            if (!sender.hasPermission("superbvote.admin") || !(args.length == 1 && args[0].equals("reload"))) {
+                BrokenNag.nag(sender);
+                return true;
+            }
+        }
+
         if (args.length == 0) {
             sendHelp(sender);
             return true;
@@ -190,7 +199,12 @@ public class SuperbVoteCommand implements CommandExecutor {
                     return true;
                 }
                 SuperbVote.getPlugin().reloadPlugin();
-                sender.sendMessage(ChatColor.GREEN + "Plugin configuration reloaded.");
+                if (SuperbVote.getPlugin().getConfiguration().isConfigurationError()) {
+                    sender.sendMessage(ChatColor.YELLOW + "Plugin configuration reloaded, but a configuration error was found.");
+                    sender.sendMessage(ChatColor.YELLOW + "Please check the console for more details.");
+                } else {
+                    sender.sendMessage(ChatColor.GREEN + "Plugin configuration reloaded.");
+                }
                 return true;
             case "clear":
                 if (!sender.hasPermission("superbvote.admin")) {
