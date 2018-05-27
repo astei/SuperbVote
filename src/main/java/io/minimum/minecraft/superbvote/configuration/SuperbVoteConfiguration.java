@@ -73,7 +73,7 @@ public class SuperbVoteConfiguration {
         }
 
         if (rewards.isEmpty() && !configurationError) {
-            SuperbVote.getPlugin().getLogger().severe("Your configuration does not specify any rewards. SuperbVote is unable to process votes if no reward is present.");
+            SuperbVote.getPlugin().getLogger().severe("Your configuration does not specify any rewards.");
             configurationError = true;
         }
 
@@ -81,12 +81,10 @@ public class SuperbVoteConfiguration {
                 .filter(r -> r.getRewardMatchers().contains(StaticRewardMatcher.ALWAYS_MATCH) || r.getRewardMatchers().isEmpty())
                 .count();
         if (defaultRewardCount == 0 && !configurationError) {
-            SuperbVote.getPlugin().getLogger().severe("No default reward was defined. SuperbVote is unable to process votes if no default reward is present.");
-            SuperbVote.getPlugin().getLogger().severe("To set a default reward, set default: true in one of your reward if blocks.");
+            SuperbVote.getPlugin().getLogger().severe("No default reward was defined. To set a default reward, set default: true in one of your reward if blocks.");
             configurationError = true;
         } else if (defaultRewardCount > 1 && !configurationError) {
-            SuperbVote.getPlugin().getLogger().severe("Multiple default rewards are defined. SuperbVote is unable to process votes.");
-            SuperbVote.getPlugin().getLogger().severe("Hint: You may want to check the spelling in your 'if' blocks. (Further information has been logged.)");
+            SuperbVote.getPlugin().getLogger().severe("Multiple default rewards are defined. Hint: You may want to check the spelling in your 'if' blocks. (Further information has been logged.)");
             configurationError = true;
         }
 

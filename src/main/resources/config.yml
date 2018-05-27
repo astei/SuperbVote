@@ -41,8 +41,8 @@ rewards:
     - eco give %player% 1000
     player-message: "&aThanks for meeting nearly impossible conditions, you have been rewarded with 4 diamonds and $1000."
     broadcast-message: "&a%player% got really lucky and was rewarded with 4 diamonds and $1000!"
-  # Default rewards are defined by using default: true as a matcher. No other matchers can be used with this matcher
-  # and only one such reward can be defined with this matcher.
+  # A default reward is required. Default rewards are defined by using default: true as a matcher. No other matchers can
+  # be used with this matcher and only one such reward can be the default reward.
   - if:
       default: true
     commands:

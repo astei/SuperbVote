@@ -12,7 +12,7 @@ public class CumulativeVotesEveryRewardMatcher implements RewardMatcher {
     static RewardMatcherFactory FACTORY = section -> {
         if (section.isInt("every-cumulative-votes")) {
             int votes = section.getInt("every-cumulative-votes");
-            Preconditions.checkArgument(votes >= 1, "Votes number must be greater than or equal to 1.");
+            Preconditions.checkArgument(votes >= 1, "every-cumulative-votes number must be greater than or equal to 1.");
             return Optional.of(new CumulativeVotesEveryRewardMatcher(votes));
         }
         return Optional.empty();

@@ -78,7 +78,7 @@ public class RewardMatchers {
             try {
                 matcher = factory.create(section);
             } catch (IllegalArgumentException e) {
-                SuperbVote.getPlugin().getLogger().severe("Invalid argument found: " + e.getMessage());
+                SuperbVote.getPlugin().getLogger().severe("Invalid matcher found: " + e.getMessage());
                 matcher = Optional.of(StaticRewardMatcher.ERROR);
             } catch (Exception e) {
                 SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to create matcher", e);
