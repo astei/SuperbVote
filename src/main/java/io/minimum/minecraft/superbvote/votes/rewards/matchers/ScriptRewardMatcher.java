@@ -18,9 +18,22 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.logging.Level;
 
 public class ScriptRewardMatcher implements RewardMatcher {
+    static RewardMatcherFactory FACTORY = section -> {
+        if (section.isString("script")) {
+            try {
+                return Optional.of(new ScriptRewardMatcher(Paths.get(section.getString("script"))));
+            } catch (IOException | ScriptException e) {
+                throw new RuntimeException("Unable to initialize script matcher " + section.getString("script"), e);
+            }
+        }
+        return Optional.empty();
+    };
+
     private final ScriptEngine engine;
     private final Path path;
 

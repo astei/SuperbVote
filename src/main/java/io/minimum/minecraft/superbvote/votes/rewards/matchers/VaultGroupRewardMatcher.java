@@ -8,8 +8,22 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
 import java.util.List;
+import java.util.Optional;
 
 public class VaultGroupRewardMatcher implements RewardMatcher {
+    static RewardMatcherFactory FACTORY = section -> {
+        Optional<Permission> vaultPerms = RewardMatchers.getVaultPermissions();
+        if (!vaultPerms.isPresent()) {
+            throw new IllegalArgumentException("Group matchers do not work without Vault being installed.");
+        }
+        if (section.isString("group")) {
+            return Optional.of(new VaultGroupRewardMatcher(vaultPerms.get(), ImmutableList.of(section.getString("group"))));
+        } else if (section.isList("groups")) {
+            return Optional.of(new VaultGroupRewardMatcher(vaultPerms.get(), section.getStringList("groups")));
+        }
+        return Optional.empty();
+    };
+
     private final Permission permission;
     private final List<String> groups;
 

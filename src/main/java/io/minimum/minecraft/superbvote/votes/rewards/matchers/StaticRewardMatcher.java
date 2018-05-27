@@ -5,10 +5,14 @@ import io.minimum.minecraft.superbvote.votes.Vote;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class StaticRewardMatcher implements RewardMatcher {
     public static final StaticRewardMatcher ALWAYS_MATCH = new StaticRewardMatcher(true);
-    public static final StaticRewardMatcher NEVER_MATCH = new StaticRewardMatcher(false);
+    public static final StaticRewardMatcher ERROR = new StaticRewardMatcher(false);
+
+    public static final RewardMatcherFactory DEFAULT_FACTORY = (ignored) -> Optional.of(ALWAYS_MATCH);
 
     private final boolean val;
 
