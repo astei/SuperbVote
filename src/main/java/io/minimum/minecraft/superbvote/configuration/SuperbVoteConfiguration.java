@@ -118,26 +118,14 @@ public class SuperbVoteConfiguration {
 
     public List<VoteReward> getBestRewards(Vote vote, PlayerVotes pv) {
         List<VoteReward> best = new ArrayList<>();
-        // We only allow random chances to match just once when cascading, the player should not get another chance
-        // to "win".
-        boolean chanceMatched = false;
-        rewardCheck:
         for (VoteReward reward : rewards) {
-            boolean rewardMatchChance = false;
-            for (RewardMatcher matcher : reward.getRewardMatchers()) {
-                boolean isChanceMatcher = (matcher instanceof ChanceFractionalRewardMatcher || matcher instanceof ChancePercentageRewardMatcher);
-                // Break if we've matched a chance award (and we've matched on it), or if this matcher doesn't match.
-                if ((chanceMatched && isChanceMatcher) || !matcher.matches(vote, pv)) {
-                    continue rewardCheck;
-                }
-                if (isChanceMatcher) {
-                    rewardMatchChance = true;
+            if (reward.getRewardMatchers().stream().allMatch(matcher -> matcher.matches(vote, pv))) {
+                best.add(reward);
+
+                if (!reward.isCascade()) {
+                    break;
                 }
             }
-
-            best.add(reward);
-            if (!reward.isCascade()) break;
-            if (rewardMatchChance) chanceMatched = true;
         }
 
         return best;
@@ -148,7 +136,9 @@ public class SuperbVoteConfiguration {
     }
 
     public static String replaceCommandPlaceholders(String text, Vote vote) {
-        return text.replaceAll("%player%", vote.getName()).replaceAll("%service%", vote.getServiceName()).replaceAll("%player_uuid%", vote.getUuid().toString());
+        return text.replaceAll("%player%", vote.getName())
+                .replaceAll("%service%", vote.getServiceName())
+                .replaceAll("%player_uuid%", vote.getUuid().toString());
     }
 
     public VoteStorage initializeVoteStorage() throws IOException {
