@@ -217,6 +217,11 @@ public class JsonVoteStorage implements VoteStorage {
         }
     }
 
+    @Override
+    public void close() {
+        // No-op: onDisable already calls save() for us.
+    }
+
     private static class VotingFile {
         private final int version;
         private final Map<UUID, PlayerRecord> records;

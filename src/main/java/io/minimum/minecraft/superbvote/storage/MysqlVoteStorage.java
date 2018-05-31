@@ -273,4 +273,13 @@ public class MysqlVoteStorage implements VoteStorage {
     public void save() {
         // No-op
     }
+
+    @Override
+    public void close() {
+        try {
+            dbPool.shutdown();
+        } catch (InterruptedException e) {
+            // Not much we can do about that...
+        }
+    }
 }

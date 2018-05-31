@@ -28,4 +28,6 @@ public interface VoteStorage {
     List<PlayerVotes> getAllPlayersWithNoVotesToday(List<UUID> onlinePlayers);
 
     void save();
+
+    void close();
 }

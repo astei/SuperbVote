@@ -105,6 +105,7 @@ public class SuperbVote extends JavaPlugin {
         }
         voteStorage.save();
         queuedVotes.save();
+        voteStorage.close();
         try {
             topPlayerSignStorage.save(new File(getDataFolder(), "top_voter_signs.json"));
         } catch (IOException e) {
