@@ -37,7 +37,7 @@ public class SuperbVoteListener implements Listener {
             }
 
             PlayerVotes pvCurrent = SuperbVote.getPlugin().getVoteStorage().getVotes(op.getUniqueId());
-            PlayerVotes pv = new PlayerVotes(op.getUniqueId(), pvCurrent.getVotes() + 1, PlayerVotes.Type.FUTURE);
+            PlayerVotes pv = new PlayerVotes(op.getUniqueId(), op.getName(), pvCurrent.getVotes() + 1, PlayerVotes.Type.FUTURE);
             Vote vote = new Vote(op.getName(), op.getUniqueId(), event.getVote().getServiceName(),
                     event.getVote().getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE), worldName, new Date());
 
@@ -107,7 +107,7 @@ public class SuperbVoteListener implements Listener {
             if (!votes.isEmpty()) {
                 for (Vote vote : votes) {
                     processVote(pv, vote, false, false, true);
-                    pv = new PlayerVotes(pv.getUuid(), pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
+                    pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(),pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
                 }
                 afterVoteProcessing();
             }
