@@ -34,7 +34,7 @@ rewards:
   # matchers.
   - if:
       permission: superbvote.test
-      chance-pecentage: 5
+      chance-percentage: 5
       service: SpecialService
     commands:
     - give %player% diamond 4
