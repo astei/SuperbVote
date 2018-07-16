@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.server.PluginEnableEvent;
 
 import java.util.Date;
 import java.util.List;
@@ -125,5 +126,12 @@ public class SuperbVoteListener implements Listener {
     private void afterVoteProcessing() {
         SuperbVote.getPlugin().getScoreboardHandler().doPopulate();
         new TopPlayerSignFetcher(SuperbVote.getPlugin().getTopPlayerSignStorage().getSignList()).run();
+    }
+
+    @EventHandler
+    public void onPluginEnable(PluginEnableEvent event) {
+        if (event.getPlugin().getName().equals("PlaceholderAPI")) {
+            SuperbVote.getPlugin().getLogger().info("Using clip's PlaceholderAPI to provide extra placeholders.");
+        }
     }
 }

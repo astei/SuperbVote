@@ -3,7 +3,7 @@ main: io.minimum.minecraft.superbvote.SuperbVote
 author: tuxed
 version: ${project.version}
 depend: [Votifier]
-softdepend: [PlaceholderAPI, Vault]
+softdepend: [Vault]
 commands:
   superbvote:
     description: SuperbVote main command.

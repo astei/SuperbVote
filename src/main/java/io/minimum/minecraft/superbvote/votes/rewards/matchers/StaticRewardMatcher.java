@@ -12,7 +12,7 @@ public class StaticRewardMatcher implements RewardMatcher {
     public static final StaticRewardMatcher ALWAYS_MATCH = new StaticRewardMatcher(true);
     public static final StaticRewardMatcher ERROR = new StaticRewardMatcher(false);
 
-    public static final RewardMatcherFactory DEFAULT_FACTORY = (ignored) -> Optional.of(ALWAYS_MATCH);
+    public static final RewardMatcherFactory DEFAULT_FACTORY = (section) -> section.getBoolean("default") ? Optional.of(ALWAYS_MATCH) : Optional.empty();
 
     private final boolean val;
 
