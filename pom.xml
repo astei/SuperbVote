@@ -6,7 +6,7 @@
 
     <groupId>io.minimum.minecraft</groupId>
     <artifactId>SuperbVote</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.5</version>
 
     <build>
         <resources>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.14.8</version>
+            <version>1.18.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

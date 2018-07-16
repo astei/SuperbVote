@@ -88,6 +88,13 @@ public class SuperbVoteConfiguration {
             configurationError = true;
         }
 
+        boolean rewardsNotProperlyConfigured = rewards.stream()
+                .anyMatch(r -> r.getRewardMatchers().contains(StaticRewardMatcher.ERROR));
+        if (rewardsNotProperlyConfigured) {
+            SuperbVote.getPlugin().getLogger().severe("Some of your rewards are not correctly set up. This could cause issues, so SuperbVote will not work until you have fixed your configuration. (Further information has been logged.)");
+            configurationError = true;
+        }
+
         reminderMessage = VoteMessages.from(configuration, "vote-reminder.message");
 
         if (configuration.getBoolean("vote-command.enabled")) {
