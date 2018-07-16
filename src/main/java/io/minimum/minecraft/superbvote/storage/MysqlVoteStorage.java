@@ -177,7 +177,11 @@ public class MysqlVoteStorage implements VoteStorage {
             try (PreparedStatement statement = connection.prepareStatement("SELECT last_name, votes FROM " + tableName + " WHERE uuid = ?")) {
                 statement.setString(1, player.toString());
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    return new PlayerVotes(player, resultSet.getString(1), resultSet.next() ? resultSet.getInt(2) : 0, PlayerVotes.Type.CURRENT);
+                    if (resultSet.next()) {
+                        return new PlayerVotes(player, resultSet.getString(1), resultSet.getInt(2), PlayerVotes.Type.CURRENT);
+                    } else {
+                        return new PlayerVotes(player, null, 0, PlayerVotes.Type.CURRENT);
+                    }
                 }
             }
         } catch (SQLException e) {
