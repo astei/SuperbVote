@@ -7,10 +7,10 @@ import org.bukkit.Bukkit;
 public class ClipsPlaceholderProvider implements PlaceholderProvider {
     @Override
     public String apply(String message, MessageContext context) {
-        if (!context.getPlayer().isOnline()) {
+        if (!context.getPlayer().isPresent() || !context.getPlayer().get().isOnline()) {
             return message; // fallthrough
         }
-        return PlaceholderAPI.setPlaceholders(context.getPlayer().getPlayer(), message);
+        return PlaceholderAPI.setPlaceholders(context.getPlayer().get().getPlayer(), message);
     }
 
     @Override

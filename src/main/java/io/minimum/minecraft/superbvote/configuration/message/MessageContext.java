@@ -25,8 +25,8 @@ public class MessageContext {
         return voteRecord;
     }
 
-    public OfflinePlayer getPlayer() {
-        return player;
+    public Optional<OfflinePlayer> getPlayer() {
+        return Optional.ofNullable(player);
     }
 
     @Override

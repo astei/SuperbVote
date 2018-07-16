@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.Optional;
 
 @Data
 public class VoteReward {
@@ -22,7 +23,7 @@ public class VoteReward {
 
     public void broadcastVote(MessageContext context, boolean playerAnnounce, boolean broadcast) {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (playerMessage != null && player.equals(context.getPlayer()) && playerAnnounce) {
+            if (playerMessage != null && Optional.of(player).equals(context.getPlayer()) && playerAnnounce) {
                 playerMessage.sendAsBroadcast(player, context);
             }
             if (broadcastMessage != null && broadcast) {
