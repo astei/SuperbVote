@@ -22,9 +22,10 @@ import java.util.logging.Level;
 
 @RequiredArgsConstructor
 public class MysqlVoteStorage implements VoteStorage {
-    public static final int TABLE_VERSION_2 = 2;
-    public static final int TABLE_VERSION_3 = 3;
-    public static final int TABLE_VERSION_CURRENT = TABLE_VERSION_3;
+    private static final int TABLE_VERSION_2 = 2;
+    private static final int TABLE_VERSION_3 = 3;
+    private static final int TABLE_VERSION_4 = 4;
+    private static final int TABLE_VERSION_CURRENT = TABLE_VERSION_4;
 
     private final HikariPool dbPool;
     private final String tableName;
@@ -42,7 +43,7 @@ public class MysqlVoteStorage implements VoteStorage {
                 try (ResultSet t = connection.getMetaData().getTables(null, null, tableName, null)) {
                     if (!t.next()) {
                         try (Statement statement = connection.createStatement()) {
-                            statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT, last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+                            statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT NOT NULL, last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
                             // This may speed up leaderboards
                             statement.executeUpdate("CREATE INDEX uuid_votes_idx ON " + tableName + " (uuid, votes)");
                         }
@@ -62,6 +63,12 @@ public class MysqlVoteStorage implements VoteStorage {
                                     statement.executeUpdate("ALTER TABLE " + tableName + " CHANGE last_vote last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
                                 }
                                 isUpdated = true;
+                            }
+                            if (ver < TABLE_VERSION_4) {
+                                try (Statement statement = connection.createStatement()) {
+                                    // In case invalid vote counts snuck in, tell MySQL to say it's zero.
+                                    statement.executeUpdate("ALTER TABLE " + tableName + " MODIFY votes int(11) NOT NULL DEFAULT 0");
+                                }
                             }
                         }
                     }
