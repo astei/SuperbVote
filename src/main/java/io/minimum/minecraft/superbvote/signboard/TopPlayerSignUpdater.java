@@ -29,7 +29,6 @@ public class TopPlayerSignUpdater implements Runnable {
         Block at = origin.getRelative(BlockFace.UP);
         for (BlockFace face : FACES) {
             Block b = at.getRelative(face);
-            System.out.println("at " + face + " block is " + b.getType());
             if (b.getType() == Material.PLAYER_HEAD || b.getType() == Material.PLAYER_WALL_HEAD)
                 return Optional.of(b);
         }
@@ -40,7 +39,6 @@ public class TopPlayerSignUpdater implements Runnable {
     public void run() {
         for (TopPlayerSign sign : toUpdate) {
             Block block = sign.getSign().getBukkitLocation().getBlock();
-            System.out.println(block.getType());
             if (block.getType() == Material.WALL_SIGN || block.getType() == Material.SIGN) {
                 Sign worldSign = (Sign) block.getState();
                 // TODO: Formatting
