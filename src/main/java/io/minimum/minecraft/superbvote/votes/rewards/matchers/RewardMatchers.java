@@ -18,7 +18,6 @@ public class RewardMatchers {
             .add("permission")
             .add("chance-fractional")
             .add("chance-percentage")
-            .add("chance")
             .add("service")
             .add("services")
             .add("cumulative-votes")
