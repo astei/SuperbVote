@@ -50,7 +50,7 @@ public class SuperbVote extends JavaPlugin {
 
         try {
             voteStorage = configuration.initializeVoteStorage();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Exception whilst initializing vote storage", e);
         }
 

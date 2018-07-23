@@ -2,6 +2,7 @@ package io.minimum.minecraft.superbvote.storage;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
@@ -15,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -43,6 +45,12 @@ public class JsonVoteStorage implements VoteStorage {
             } else {
                 voteCounts.putAll(vf.records);
             }
+        } catch (JsonSyntaxException e) {
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            String movedName = String.format("%s-broken-%s", saveTo.getFileName(), date);
+            SuperbVote.getPlugin().getLogger().severe("Your vote storage file is corrupted. Starting fresh by moving it to " + movedName + ".");
+            SuperbVote.getPlugin().getLogger().severe("As a result, your votes have been reset. Sorry :(");
+            Files.move(saveTo, saveTo.getParent().resolve(movedName));
         }
 
         if (needMigrate) {
