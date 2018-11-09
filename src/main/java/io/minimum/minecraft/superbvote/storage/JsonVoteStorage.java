@@ -94,8 +94,9 @@ public class JsonVoteStorage implements VoteStorage {
         Preconditions.checkNotNull(vote, "vote");
         rwl.writeLock().lock();
         try {
-            PlayerRecord rec = voteCounts.putIfAbsent(vote.getUuid(), new PlayerRecord(1, vote.getReceived().getTime()));
+            PlayerRecord rec = voteCounts.putIfAbsent(vote.getUuid(), new PlayerRecord(vote.getName(), 1, vote.getReceived().getTime()));
             if (rec != null) {
+                rec.lastKnownUsername = vote.getName();
                 rec.votes++;
                 rec.lastVoted = vote.getReceived().getTime();
             }
@@ -113,7 +114,13 @@ public class JsonVoteStorage implements VoteStorage {
             if (votes == 0) {
                 voteCounts.remove(player);
             } else {
-                voteCounts.put(player, new PlayerRecord(votes, ts));
+                PlayerRecord rec = this.voteCounts.get(player);
+                if (rec != null) {
+                    rec.votes = votes;
+                    rec.lastVoted = ts;
+                } else {
+                    this.voteCounts.put(player, new PlayerRecord(votes, ts));
+                }
             }
         } finally {
             rwl.writeLock().unlock();
@@ -136,7 +143,8 @@ public class JsonVoteStorage implements VoteStorage {
         rwl.readLock().lock();
         try {
             PlayerRecord pr = voteCounts.get(player);
-            return new PlayerVotes(player, null, pr == null ? 0 : pr.votes, PlayerVotes.Type.CURRENT);
+            return new PlayerVotes(player, pr != null ? pr.lastKnownUsername : null, pr == null ? 0 : pr.votes,
+                    PlayerVotes.Type.CURRENT);
         } finally {
             rwl.readLock().unlock();
         }
@@ -152,7 +160,7 @@ public class JsonVoteStorage implements VoteStorage {
                     .sorted(Collections.reverseOrder(Comparator.comparing(Map.Entry::getValue)))
                     .skip(skip)
                     .limit(amount)
-                    .map(e -> new PlayerVotes(e.getKey(), null, e.getValue().votes, PlayerVotes.Type.CURRENT))
+                    .map(e -> new PlayerVotes(e.getKey(), e.getValue().lastKnownUsername, e.getValue().votes, PlayerVotes.Type.CURRENT))
                     .collect(Collectors.toList());
         } finally {
             rwl.readLock().unlock();
@@ -241,6 +249,7 @@ public class JsonVoteStorage implements VoteStorage {
     }
 
     private static class PlayerRecord implements Comparable<PlayerRecord> {
+        private String lastKnownUsername;
         private int votes;
         private long lastVoted;
 
@@ -249,6 +258,11 @@ public class JsonVoteStorage implements VoteStorage {
         }
 
         private PlayerRecord(int votes, long lastVoted) {
+            this(null, votes, lastVoted);
+        }
+
+        public PlayerRecord(String lastKnownUsername, int votes, long lastVoted) {
+            this.lastKnownUsername = lastKnownUsername;
             this.votes = votes;
             this.lastVoted = lastVoted;
         }
