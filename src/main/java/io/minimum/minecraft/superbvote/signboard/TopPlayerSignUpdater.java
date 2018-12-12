@@ -6,6 +6,7 @@ import io.minimum.minecraft.superbvote.configuration.message.PlainStringMessage;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
 import org.bukkit.block.Block;
@@ -38,7 +39,12 @@ public class TopPlayerSignUpdater implements Runnable {
     @Override
     public void run() {
         for (TopPlayerSign sign : toUpdate) {
-            Block block = sign.getSign().getBukkitLocation().getBlock();
+            Location location = sign.getSign().getBukkitLocation();
+            if (location.getWorld() == null) {
+                SuperbVote.getPlugin().getLogger().severe("World for sign " + sign.getSign() + " is missing!");
+                continue;
+            }
+            Block block = location.getBlock();
             if (block.getType() == Material.WALL_SIGN || block.getType() == Material.SIGN) {
                 Sign worldSign = (Sign) block.getState();
                 // TODO: Formatting
