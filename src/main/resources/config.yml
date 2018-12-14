@@ -1,10 +1,7 @@
 # SuperbVote configuration
 # A superb vote plugin made by Tux.
 #
-# https://github.com/minecrafter/SuperbVote/wiki
-
-# Once you've configured SuperbVote, add it to our official server list, CraftServers.net:
-# Official server list: https://www.craftservers.net/
+# https://github.com/minecrafter/SuperbVote/wiki\
 
 # Database configuration.
 storage:
