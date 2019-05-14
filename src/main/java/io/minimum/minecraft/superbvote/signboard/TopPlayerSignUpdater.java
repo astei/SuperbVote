@@ -45,7 +45,7 @@ public class TopPlayerSignUpdater implements Runnable {
                 continue;
             }
             Block block = location.getBlock();
-            if (block.getType() == Material.WALL_SIGN || block.getType() == Material.SIGN) {
+            if (block.getState() instanceof Sign) {
                 Sign worldSign = (Sign) block.getState();
                 // TODO: Formatting
                 if (sign.getPosition() > top.size()) {

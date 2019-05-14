@@ -214,7 +214,7 @@ public class JsonVoteStorage implements VoteStorage {
         try {
             prs = new HashMap<>();
             for (Map.Entry<UUID, PlayerRecord> entry : voteCounts.entrySet()) {
-                prs.put(entry.getKey(), new PlayerRecord(entry.getValue().votes, entry.getValue().lastVoted));
+                prs.put(entry.getKey(), entry.getValue().copy());
             }
         } finally {
             rwl.readLock().unlock();
@@ -265,6 +265,10 @@ public class JsonVoteStorage implements VoteStorage {
             this.lastKnownUsername = lastKnownUsername;
             this.votes = votes;
             this.lastVoted = lastVoted;
+        }
+
+        public PlayerRecord copy() {
+            return new PlayerRecord(lastKnownUsername, votes, lastVoted);
         }
 
         @Override
