@@ -42,8 +42,10 @@ public class SuperbVoteJsonFileMigration implements Migration {
             listener.onStart(records);
             int currentIdx = 0;
             for (Map.Entry<String, JsonElement> entry : recordObj.entrySet()) {
-                int votes = entry.getValue().getAsJsonObject().getAsJsonPrimitive("votes").getAsInt();
-                long lastVoted = entry.getValue().getAsJsonObject().getAsJsonPrimitive("lastVoted").getAsLong();
+                JsonObject o = entry.getValue().getAsJsonObject();
+
+                int votes = o.getAsJsonPrimitive("votes").getAsInt();
+                long lastVoted = o.getAsJsonPrimitive("lastVoted").getAsLong();
                 SuperbVote.getPlugin().getVoteStorage().setVotes(UUID.fromString(entry.getKey()), votes, lastVoted);
                 currentIdx++;
 

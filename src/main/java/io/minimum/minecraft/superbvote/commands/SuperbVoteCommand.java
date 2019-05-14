@@ -75,7 +75,8 @@ public class SuperbVoteCommand implements CommandExecutor {
 
         switch (args[0]) {
             case "votes":
-                boolean isAdmin = sender.hasPermission("superbvote.admin");
+                boolean canViewOthersVotes = sender.hasPermission("superbvote.admin") ||
+                        sender.hasPermission("superbvote.votes.others");
                 Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
                     UUID uuid;
                     String name;
@@ -88,7 +89,7 @@ public class SuperbVoteCommand implements CommandExecutor {
                             return;
                         }
                     } else if (args.length == 2) {
-                        if (!isAdmin) {
+                        if (!canViewOthersVotes) {
                             sender.sendMessage(ChatColor.RED + "You can't do this.");
                             return;
                         }

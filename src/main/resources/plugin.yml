@@ -4,7 +4,7 @@ author: tuxed
 version: ${project.version}
 depend: [Votifier]
 softdepend: [Vault]
-api-version: 1.13
+api-version: "1.13"
 commands:
   superbvote:
     description: SuperbVote main command.
@@ -14,3 +14,7 @@ commands:
 permissions:
   superbvote.notify:
     default: true
+  superbvote.votes.others:
+    default: op
+  superbvote.admin:
+    default: op
