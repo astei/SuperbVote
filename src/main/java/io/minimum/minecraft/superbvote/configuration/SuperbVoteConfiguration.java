@@ -182,9 +182,10 @@ public class SuperbVoteConfiguration {
                 String database = configuration.getString("storage.mysql.database", "superbvote");
                 String table = configuration.getString("storage.mysql.table", "superbvote");
                 boolean readOnly = configuration.getBoolean("storage.mysql.read-only");
+                boolean ssl = configuration.getBoolean("storage.mysql.ssl");
 
                 HikariConfig config = new HikariConfig();
-                config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database);
+                config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=" + ssl);
                 config.setUsername(username);
                 config.setPassword(password);
                 config.setMinimumIdle(2);

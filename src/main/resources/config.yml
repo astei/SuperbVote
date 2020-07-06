@@ -15,6 +15,7 @@ storage:
     database: superbvote
     table: votes
     read-only: false
+    ssl: true
 
 # General vote configuration.
 votes:
