@@ -61,6 +61,13 @@ broadcast:
   # Should we broadcast queued votes?
   queued: true
 
+  antispam:
+    # Should we add a minimum time in between global broadcasts to prevent spam in chat?
+    enabled: false
+
+    # How many seconds should be between broadcasts?
+    time: 120
+
 # Vote command.
 # See http://www.minecraftforum.net/forums/minecraft-discussion/redstone-discussion-and/351959-1-9-json-text-component-for-tellraw-title-books
 # and https://www.minecraftjson.com for json text format

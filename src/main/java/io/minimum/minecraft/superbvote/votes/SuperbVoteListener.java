@@ -59,6 +59,8 @@ public class SuperbVoteListener implements Listener {
     private void processVote(PlayerVotes pv, Vote vote, boolean broadcast, boolean queue, boolean wasQueued) {
         List<VoteReward> bestRewards = SuperbVote.getPlugin().getConfiguration().getBestRewards(vote, pv);
         MessageContext context = new MessageContext(vote, pv, Bukkit.getOfflinePlayer(vote.getUuid()));
+        boolean canBroadcast = SuperbVote.getPlugin().getRecentVotesStorage().canBroadcast(vote.getUuid());
+        SuperbVote.getPlugin().getRecentVotesStorage().updateLastVote(vote.getUuid());
 
         if (bestRewards.isEmpty()) {
             throw new RuntimeException("No vote rewards found for '" + vote + "'");
@@ -67,7 +69,7 @@ public class SuperbVoteListener implements Listener {
         if (queue) {
             SuperbVote.getPlugin().getLogger().log(Level.INFO, "Queuing vote from " + vote.getName() + " to be run later");
             for (VoteReward reward : bestRewards) {
-                reward.broadcastVote(context, false, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued"));
+                reward.broadcastVote(context, false, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued") && canBroadcast);
             }
             SuperbVote.getPlugin().getQueuedVotes().addVote(vote);
         } else {
@@ -77,7 +79,7 @@ public class SuperbVoteListener implements Listener {
 
             if (!wasQueued) {
                 for (VoteReward reward : bestRewards) {
-                    reward.broadcastVote(context, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.message-player"), broadcast);
+                    reward.broadcastVote(context, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.message-player"), broadcast && canBroadcast);
                 }
                 Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), this::afterVoteProcessing);
             }

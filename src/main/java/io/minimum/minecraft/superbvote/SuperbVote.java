@@ -7,6 +7,7 @@ import io.minimum.minecraft.superbvote.signboard.TopPlayerSignFetcher;
 import io.minimum.minecraft.superbvote.signboard.TopPlayerSignListener;
 import io.minimum.minecraft.superbvote.signboard.TopPlayerSignStorage;
 import io.minimum.minecraft.superbvote.storage.QueuedVotesStorage;
+import io.minimum.minecraft.superbvote.storage.RecentVotesStorage;
 import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.BrokenNag;
 import io.minimum.minecraft.superbvote.util.SpigotUpdater;
@@ -30,6 +31,8 @@ public class SuperbVote extends JavaPlugin {
     private VoteStorage voteStorage;
     @Getter
     private QueuedVotesStorage queuedVotes;
+    @Getter
+    private RecentVotesStorage recentVotesStorage;
     @Getter
     private ScoreboardHandler scoreboardHandler;
     @Getter
@@ -59,6 +62,8 @@ public class SuperbVote extends JavaPlugin {
         } catch (IOException e) {
             throw new RuntimeException("Exception whilst initializing queued vote storage", e);
         }
+
+        recentVotesStorage = new RecentVotesStorage();
 
         scoreboardHandler = new ScoreboardHandler();
         voteServiceCooldown = new VoteServiceCooldown(getConfig().getInt("votes.cooldown-per-service", 3600));
