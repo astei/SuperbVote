@@ -71,6 +71,12 @@ public class SuperbVoteListener implements Listener {
         }
 
         if (queue) {
+            if (!SuperbVote.getPlugin().getConfiguration().shouldQueueVotes()) {
+                SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
+                        vote.getServiceName() + ") because they aren't online.");
+                return;
+            }
+
             SuperbVote.getPlugin().getLogger().log(Level.INFO, "Queuing vote from " + vote.getName() + " to be run later");
             for (VoteReward reward : bestRewards) {
                 reward.broadcastVote(context, false, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued") && canBroadcast && !hideBroadcast);
