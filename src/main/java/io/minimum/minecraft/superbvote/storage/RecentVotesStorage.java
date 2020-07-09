@@ -1,25 +1,30 @@
 package io.minimum.minecraft.superbvote.storage;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.minimum.minecraft.superbvote.SuperbVote;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class RecentVotesStorage {
 
-    private final Map<UUID, Instant> lastVotes = new ConcurrentHashMap<>(32, 0.75f, 2);
+    private final LoadingCache<UUID, UUID> lastVotes = CacheBuilder.newBuilder()
+            .expireAfterWrite(SuperbVote.getPlugin().getConfig().getInt("broadcast.antispam.time", 120), TimeUnit.SECONDS)
+            .build(new CacheLoader<UUID, UUID>() {
+                @Override
+                public UUID load(UUID uuid) {
+                    return uuid;
+                }
+            });
 
     public boolean canBroadcast(UUID uuid) {
         if (!SuperbVote.getPlugin().getConfig().getBoolean("broadcast.antispam.enabled")) return true;
-        Instant start = lastVotes.getOrDefault(uuid, Instant.MIN);
-        int antispamTime = SuperbVote.getPlugin().getConfig().getInt("broadcast.antispam.time", 120);
-        return Duration.between(start, Instant.now()).getSeconds() >= antispamTime;
+        return lastVotes.getIfPresent(uuid) != null;
     }
 
     public void updateLastVote(UUID uuid) {
-        lastVotes.put(uuid, Instant.now());
+        lastVotes.put(uuid, uuid);
     }
 }
