@@ -153,6 +153,10 @@ public class SuperbVoteConfiguration {
         return configuration.getBoolean("require-online", false);
     }
 
+    public boolean shouldQueueVotes() {
+        return configuration.getBoolean("queue-votes", true);
+    }
+
     public static String replaceCommandPlaceholders(String text, Vote vote) {
         return text.replaceAll("%player%", vote.getName())
                 .replaceAll("%service%", vote.getServiceName())

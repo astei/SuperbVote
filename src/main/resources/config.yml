@@ -50,6 +50,10 @@ rewards:
 # Whether or not players need to be online to vote. If set, offline player votes are queued for when the player next logs in.
 require-online: true
 
+# Whether we should queue votes if players aren't online. Requires the above option to be set to true.
+# If this is disabled, the user won't get any rewards if they aren't online, even if they login afterwards.
+queue-votes: true
+
 # Broadcast settings:
 broadcast:
   # Should we broadcast votes at all?
@@ -60,6 +64,13 @@ broadcast:
 
   # Should we broadcast queued votes?
   queued: true
+
+  antispam:
+    # Should we add a minimum time in between global broadcasts to prevent spam in chat?
+    enabled: false
+
+    # How many seconds should be between broadcasts?
+    time: 120
 
 # Vote command.
 # See http://www.minecraftforum.net/forums/minecraft-discussion/redstone-discussion-and/351959-1-9-json-text-component-for-tellraw-title-books
