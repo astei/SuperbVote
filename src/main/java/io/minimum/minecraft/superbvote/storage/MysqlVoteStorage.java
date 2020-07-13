@@ -22,8 +22,6 @@ import java.util.logging.Level;
 
 @RequiredArgsConstructor
 public class MysqlVoteStorage implements VoteStorage {
-    private static final int TABLE_VERSION_2 = 2;
-    private static final int TABLE_VERSION_3 = 3;
     private static final int TABLE_VERSION_4 = 4;
     private static final int TABLE_VERSION_CURRENT = TABLE_VERSION_4;
 
@@ -33,58 +31,62 @@ public class MysqlVoteStorage implements VoteStorage {
 
     public void initialize() {
         // Load current DB version from disk
+        if (!readOnly) {
+            this.doMigration();
+        }
+    }
+
+    private int readDBVersionLocal() {
         YamlConfiguration dbInfo = YamlConfiguration.loadConfiguration(new File(SuperbVote.getPlugin().getDataFolder(), "db_version.yml"));
         dbInfo.options().header("DO NOT EDIT - SuperbVote internal use");
-        int ver = dbInfo.getInt("db_version", 1);
-        boolean isUpdated = false;
+        return dbInfo.getInt("db_version", -1);
+    }
 
-        if (!readOnly) {
-            try (Connection connection = dbPool.getConnection()) {
-                try (ResultSet t = connection.getMetaData().getTables(null, null, tableName, null)) {
-                    if (!t.next()) {
+    private void doMigration() {
+        try (Connection connection = dbPool.getConnection()) {
+            int version = -1;
+            try (ResultSet votesTable = connection.getMetaData().getTables(null, null, tableName, null);
+                 ResultSet migrationsTable = connection.getMetaData().getTables(null, null, tableName + "_version", null)) {
+                boolean migrationsTableExists = migrationsTable.next();
+                if (migrationsTableExists) {
+                    try (PreparedStatement currentMigration = connection.prepareStatement("SELECT version FROM " + tableName + "_version");
+                         ResultSet currentMigrationResult = currentMigration.executeQuery()) {
+                        if (currentMigrationResult.next()) {
+                            version = currentMigrationResult.getInt(1);
+                            SuperbVote.getPlugin().getLogger().log(Level.INFO, "DB version is " + version);
+                        } else {
+                            try (Statement statement = connection.createStatement()) {
+                                // Shrug
+                                statement.executeUpdate("INSERT INTO " + tableName + "_version (version) VALUES (" + TABLE_VERSION_CURRENT + ")");
+                                SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Assuming table version " + TABLE_VERSION_CURRENT + ".");
+                            }
+                        }
+                    }
+                } else {
+                    if (votesTable.next()) {
+                        // Assume DB version 4 and proceed
+                        try (Statement statement = connection.createStatement()) {
+                            statement.executeUpdate("CREATE TABLE " + tableName + "_version (version INT)");
+                            statement.executeUpdate("INSERT INTO " + tableName + "_version (version) VALUES (" + TABLE_VERSION_CURRENT + ")");
+                            SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Assuming table version " + TABLE_VERSION_CURRENT + ".");
+                        }
+                    } else {
                         try (Statement statement = connection.createStatement()) {
                             statement.executeUpdate("CREATE TABLE " + tableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, last_name VARCHAR(16), votes INT NOT NULL, last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
                             // This may speed up leaderboards
                             statement.executeUpdate("CREATE INDEX uuid_votes_idx ON " + tableName + " (uuid, votes)");
-                        }
-                        isUpdated = true;
-                    } else {
-                        if (ver < TABLE_VERSION_CURRENT) {
-                            SuperbVote.getPlugin().getLogger().log(Level.INFO, "Migrating database from version " + ver + " to " + TABLE_VERSION_CURRENT + ", this may take a while...");
-                            // We may need to add in the new last_vote column
-                            if (ver < TABLE_VERSION_2) {
-                                try (Statement statement = connection.createStatement()) {
-                                    statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN last_vote TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-                                }
-                                isUpdated = true;
-                            }
-                            if (ver < TABLE_VERSION_3) {
-                                try (Statement statement = connection.createStatement()) {
-                                    statement.executeUpdate("ALTER TABLE " + tableName + " CHANGE last_vote last_vote TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
-                                }
-                                isUpdated = true;
-                            }
-                            if (ver < TABLE_VERSION_4) {
-                                try (Statement statement = connection.createStatement()) {
-                                    // In case invalid vote counts snuck in, tell MySQL to say it's zero.
-                                    statement.executeUpdate("ALTER TABLE " + tableName + " MODIFY votes int(11) NOT NULL DEFAULT 0");
-                                }
-                            }
+
+                            statement.executeUpdate("CREATE TABLE " + tableName + "_version (version INT)");
+                            statement.executeUpdate("INSERT INTO " + tableName + "_version (version) VALUES (" + TABLE_VERSION_CURRENT + ")");
+                            SuperbVote.getPlugin().getLogger().log(Level.INFO, "Created new votes table.");
+
                         }
                     }
-                }
-            } catch (SQLException e) {
-                SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to initialize database", e);
-            }
-
-            if (isUpdated) {
-                dbInfo.set("db_version", TABLE_VERSION_CURRENT);
-                try {
-                    dbInfo.save(new File(SuperbVote.getPlugin().getDataFolder(), "db_version.yml"));
-                } catch (IOException e) {
-                    SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to save DB info", e);
+                    version = TABLE_VERSION_CURRENT;
                 }
             }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to initialize database", e);
         }
     }
 
