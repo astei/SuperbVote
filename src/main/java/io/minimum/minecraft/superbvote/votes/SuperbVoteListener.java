@@ -5,12 +5,13 @@ import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.commands.SuperbVoteCommand;
 import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.signboard.TopPlayerSignFetcher;
+import io.minimum.minecraft.superbvote.storage.ExtendedVoteStorage;
 import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
+import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.BrokenNag;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,6 +22,7 @@ import org.bukkit.event.server.PluginEnableEvent;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class SuperbVoteListener implements Listener {
@@ -38,7 +40,9 @@ public class SuperbVoteListener implements Listener {
                 worldName = op.getPlayer().getWorld().getName();
             }
 
-            PlayerVotes pvCurrent = SuperbVote.getPlugin().getVoteStorage().getVotes(op.getUniqueId());
+            VoteStorage voteStorage = SuperbVote.getPlugin().getVoteStorage();
+            VoteStreak voteStreak = voteStorage.getVoteStreakIfSupported(op.getUniqueId(), false);
+            PlayerVotes pvCurrent = voteStorage.getVotes(op.getUniqueId());
             PlayerVotes pv = new PlayerVotes(op.getUniqueId(), op.getName(), pvCurrent.getVotes() + 1, PlayerVotes.Type.FUTURE);
             Vote vote = new Vote(op.getName(), op.getUniqueId(), event.getVote().getServiceName(),
                     event.getVote().getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE), worldName, new Date());
@@ -51,15 +55,15 @@ public class SuperbVoteListener implements Listener {
                 }
             }
 
-            processVote(pv, vote, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.enabled"),
+            processVote(pv, voteStreak, vote, SuperbVote.getPlugin().getConfig().getBoolean("broadcast.enabled"),
                     !op.isOnline() && SuperbVote.getPlugin().getConfiguration().requirePlayersOnline(),
                     false);
         });
     }
 
-    private void processVote(PlayerVotes pv, Vote vote, boolean broadcast, boolean queue, boolean wasQueued) {
+    private void processVote(PlayerVotes pv, VoteStreak voteStreak, Vote vote, boolean broadcast, boolean queue, boolean wasQueued) {
         List<VoteReward> bestRewards = SuperbVote.getPlugin().getConfiguration().getBestRewards(vote, pv);
-        MessageContext context = new MessageContext(vote, pv, Bukkit.getOfflinePlayer(vote.getUuid()));
+        MessageContext context = new MessageContext(vote, pv, voteStreak, Bukkit.getOfflinePlayer(vote.getUuid()));
         boolean canBroadcast = SuperbVote.getPlugin().getRecentVotesStorage().canBroadcast(vote.getUuid());
         SuperbVote.getPlugin().getRecentVotesStorage().updateLastVote(vote.getUuid());
 
@@ -115,11 +119,14 @@ public class SuperbVoteListener implements Listener {
             }
 
             // Process queued votes.
-            PlayerVotes pv = SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId());
-            List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
+            VoteStorage voteStorage = SuperbVote.getPlugin().getVoteStorage();
+            UUID playerUUID = event.getPlayer().getUniqueId();
+            PlayerVotes pv = voteStorage.getVotes(playerUUID);
+            VoteStreak voteStreak = voteStorage.getVoteStreakIfSupported(playerUUID, false);
+            List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(playerUUID);
             if (!votes.isEmpty()) {
                 for (Vote vote : votes) {
-                    processVote(pv, vote, false, false, true);
+                    processVote(pv, voteStreak, vote, false, false, true);
                     pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(),pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
                 }
                 afterVoteProcessing();
@@ -129,7 +136,7 @@ public class SuperbVoteListener implements Listener {
             if (SuperbVote.getPlugin().getConfig().getBoolean("vote-reminder.on-join") &&
                     event.getPlayer().hasPermission("superbvote.notify") &&
                     !SuperbVote.getPlugin().getVoteStorage().hasVotedToday(event.getPlayer().getUniqueId())) {
-                MessageContext context = new MessageContext(null, pv, event.getPlayer());
+                MessageContext context = new MessageContext(null, pv, voteStreak, event.getPlayer());
                 SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer(), context);
             }
         });

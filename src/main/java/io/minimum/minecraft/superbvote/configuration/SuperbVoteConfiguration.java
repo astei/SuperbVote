@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
-import io.minimum.minecraft.superbvote.commands.VoteCommand;
+import io.minimum.minecraft.superbvote.commands.CommonCommand;
 import io.minimum.minecraft.superbvote.configuration.message.OfflineVoteMessages;
 import io.minimum.minecraft.superbvote.configuration.message.PlainStringMessage;
 import io.minimum.minecraft.superbvote.configuration.message.VoteMessage;
@@ -36,11 +36,13 @@ public class SuperbVoteConfiguration {
     @Getter
     private final VoteMessage reminderMessage;
     @Getter
-    private final VoteCommand voteCommand;
+    private final CommonCommand voteCommand, voteStreakCommand;
     @Getter
     private final TextLeaderboardConfiguration textLeaderboardConfiguration;
     @Getter
     private final TopPlayerSignsConfiguration topPlayerSignsConfiguration;
+    @Getter
+    private final StreaksConfiguration streaksConfiguration;
     @Getter
     private boolean configurationError = false;
 
@@ -100,9 +102,18 @@ public class SuperbVoteConfiguration {
         if (configuration.getBoolean("vote-command.enabled")) {
             boolean useJson = configuration.getBoolean("vote-command.use-json-text");
             VoteMessage voteMessage = VoteMessages.from(configuration, "vote-command.text", false, useJson);
-            voteCommand = new VoteCommand(voteMessage);
+            voteCommand = new CommonCommand(voteMessage, false);
         } else {
             voteCommand = null;
+        }
+
+        streaksConfiguration = initializeStreaksConfiguration();
+        if (streaksConfiguration.isEnabled() && configuration.getBoolean("streaks.command.enabled")) {
+            boolean useJson = configuration.getBoolean("streaks.command.use-json-text");
+            VoteMessage voteMessage = VoteMessages.from(configuration, "streaks.command.text", false, useJson);
+            voteStreakCommand = new CommonCommand(voteMessage, true);
+        } else {
+            voteStreakCommand = null;
         }
 
         textLeaderboardConfiguration = new TextLeaderboardConfiguration(
@@ -163,6 +174,18 @@ public class SuperbVoteConfiguration {
                 .replaceAll("%player_uuid%", vote.getUuid().toString());
     }
 
+    private StreaksConfiguration initializeStreaksConfiguration() {
+        ConfigurationSection section = configuration.getConfigurationSection("streaks");
+        if (section == null) {
+            return new StreaksConfiguration(false, false, 0);
+        }
+
+        boolean enabled = section.getBoolean("enabled");
+        boolean placeholdersEnabled = section.getBoolean("enable-placeholders");
+        int requirement = section.getInt("requirement", 1);
+        return new StreaksConfiguration(enabled, enabled && placeholdersEnabled, requirement);
+    }
+
     public VoteStorage initializeVoteStorage() throws IOException {
         String storage = configuration.getString("storage.database");
         if (!SUPPORTED_STORAGE.contains(storage)) {
@@ -185,6 +208,7 @@ public class SuperbVoteConfiguration {
                 String password = configuration.getString("storage.mysql.password", "");
                 String database = configuration.getString("storage.mysql.database", "superbvote");
                 String table = configuration.getString("storage.mysql.table", "superbvote");
+                String streaksTableName = configuration.getString("storage.mysql.streaks-table");
                 boolean readOnly = configuration.getBoolean("storage.mysql.read-only");
 
                 HikariConfig config = new HikariConfig();
@@ -194,7 +218,7 @@ public class SuperbVoteConfiguration {
                 config.setMinimumIdle(2);
                 config.setMaximumPoolSize(6);
                 HikariPool pool = new HikariPool(config);
-                MysqlVoteStorage mysqlVoteStorage = new MysqlVoteStorage(pool, table, readOnly);
+                MysqlVoteStorage mysqlVoteStorage = new MysqlVoteStorage(pool, table, streaksTableName, readOnly);
                 mysqlVoteStorage.initialize();
                 return mysqlVoteStorage;
         }

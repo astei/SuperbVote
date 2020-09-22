@@ -11,6 +11,9 @@ commands:
     aliases: [sv]
   vote:
     description: SuperbVote vote command.
+  votestreak:
+    description: SuperbVote vote streak command.
+    aliases: [vstreak]
 permissions:
   superbvote.notify:
     default: true

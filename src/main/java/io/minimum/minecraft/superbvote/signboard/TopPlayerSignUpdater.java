@@ -58,7 +58,7 @@ public class TopPlayerSignUpdater implements Runnable {
                         PlainStringMessage m = SuperbVote.getPlugin().getConfiguration().getTopPlayerSignsConfiguration().getSignText().get(i);
                         PlayerVotes pv = top.get(sign.getPosition() - 1);
                         worldSign.setLine(i, m.getWithOfflinePlayer(null,
-                                new MessageContext(null, pv, null)).replace("%num%", Integer.toString(sign.getPosition())));
+                                new MessageContext(null, pv, null, null)).replace("%num%", Integer.toString(sign.getPosition())));
                     }
                     for (int i = lines; i < 4; i++) {
                         worldSign.setLine(i, "");
