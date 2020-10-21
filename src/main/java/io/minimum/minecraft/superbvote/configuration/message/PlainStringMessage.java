@@ -1,6 +1,5 @@
 package io.minimum.minecraft.superbvote.configuration.message;
 
-import io.minimum.minecraft.superbvote.configuration.message.placeholder.PlaceholderProvider;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

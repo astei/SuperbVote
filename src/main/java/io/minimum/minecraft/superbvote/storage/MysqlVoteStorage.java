@@ -3,32 +3,36 @@ package io.minimum.minecraft.superbvote.storage;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.zaxxer.hikari.pool.HikariPool;
 import io.minimum.minecraft.superbvote.SuperbVote;
+import io.minimum.minecraft.superbvote.configuration.StreaksConfiguration;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.Vote;
+import io.minimum.minecraft.superbvote.votes.VoteStreak;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public class MysqlVoteStorage implements VoteStorage {
+public class MysqlVoteStorage implements ExtendedVoteStorage {
     private static final int TABLE_VERSION_2 = 2;
     private static final int TABLE_VERSION_3 = 3;
     private static final int TABLE_VERSION_4 = 4;
     private static final int TABLE_VERSION_CURRENT = TABLE_VERSION_4;
 
     private final HikariPool dbPool;
-    private final String tableName;
+    private final String tableName, streaksTableName;
     private final boolean readOnly;
 
     public void initialize() {
@@ -73,6 +77,16 @@ public class MysqlVoteStorage implements VoteStorage {
                         }
                     }
                 }
+                try (ResultSet t = connection.getMetaData().getTables(null, null, streaksTableName, null)) {
+                	if (!t.next()) {
+                		try (Statement statement = connection.createStatement()) {
+                		    statement.executeUpdate("CREATE TABLE " + streaksTableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, streak INT NOT NULL DEFAULT 1, days INT NOT " +
+                                    "NULL DEFAULT 1, last_day DATE NOT NULL DEFAULT CURRENT_DATE(), services TEXT NOT NULL DEFAULT '{}', " +
+                                    "CHECK(JSON_VALID(services)))");
+                            statement.executeUpdate("CREATE INDEX uuid_last_day_idx ON " + streaksTableName + " (uuid, last_day)");
+                        }
+                    }
+                }
             } catch (SQLException e) {
                 SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to initialize database", e);
             }
@@ -112,6 +126,31 @@ public class MysqlVoteStorage implements VoteStorage {
                     statement.setTimestamp(2, new Timestamp(vote.getReceived().getTime()));
                     statement.setTimestamp(3, new Timestamp(vote.getReceived().getTime()));
                     statement.executeUpdate();
+                }
+            }
+
+            if (SuperbVote.getPlugin().getConfiguration().getStreaksConfiguration().isEnabled()) {
+            	VoteStreak currentStreak = getVoteStreak(vote.getUuid(), true);
+            	if (currentStreak.getCount() == 0 && currentStreak.getDays() == 0) {
+                    try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + streaksTableName + " (uuid, services) VALUES (?, JSON_SET('{}', ?, " +
+                            "UNIX_TIMESTAMP())) ON DUPLICATE KEY UPDATE streak = 1, days = 1, services = JSON_SET('{}', ?, UNIX_TIMESTAMP()), last_day = CURRENT_DATE()")) {
+                        statement.setString(1, vote.getUuid().toString());
+                        String serviceKey = "$." + vote.getServiceName();
+                        statement.setString(2, serviceKey);
+                        statement.setString(3, serviceKey);
+                        statement.executeUpdate();
+                    }
+                }
+            	else {
+                    try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + streaksTableName + " (uuid, services) VALUES (?, JSON_SET('{}', ?, " +
+                            "UNIX_TIMESTAMP())) ON DUPLICATE KEY UPDATE streak = streak + 1, days = days + LEAST(1, DATEDIFF(CURRENT_DATE(), last_day))," +
+                            " services = JSON_SET(services, ?, UNIX_TIMESTAMP()), last_day = CURRENT_DATE()")) {
+                        statement.setString(1, vote.getUuid().toString());
+                        String serviceKey = "$." + vote.getServiceName();
+                        statement.setString(2, serviceKey);
+                        statement.setString(3, serviceKey);
+                        statement.executeUpdate();
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -212,6 +251,7 @@ public class MysqlVoteStorage implements VoteStorage {
         }
     }
 
+
     @Override
     public int getPagesAvailable(int amount) {
         try (Connection connection = dbPool.getConnection()) {
@@ -281,6 +321,93 @@ public class MysqlVoteStorage implements VoteStorage {
         } catch (SQLException e) {
             SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to batch-get votes", e);
             return ImmutableList.of();
+        }
+    }
+
+    @Override
+    public List<Map.Entry<PlayerVotes, VoteStreak>> getAllPlayersAndStreaksWithNoVotesToday(List<UUID> onlinePlayers) {
+    	Map<UUID, PlayerVotes> noVotes = getAllPlayersWithNoVotesToday(onlinePlayers).stream()
+                .collect(Collectors.toMap(PlayerVotes::getUuid, p -> p));
+    	if (noVotes.isEmpty()) {
+    	    return ImmutableList.of();
+        }
+
+    	List<Map.Entry<PlayerVotes, VoteStreak>> result = new ArrayList<>();
+        try (Connection connection = dbPool.getConnection()) {
+            String valueStatement = Joiner.on(", ").join(Collections.nCopies(noVotes.size(), "?"));
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, streak, days FROM " + streaksTableName + " WHERE uuid IN (" + valueStatement + ")")) {
+            	List<PlayerVotes> noVotesList = new ArrayList<>(noVotes.values());
+                for (int i = 0; i < noVotesList.size(); i++) {
+                    statement.setString(i + 1, noVotesList.get(i).toString());
+                }
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        UUID uuid = UUID.fromString(resultSet.getString(1));
+                        result.add(Maps.immutableEntry(noVotes.get(uuid), new VoteStreak(uuid,
+                                resultSet.getInt(2),
+                                resultSet.getInt(3),
+                                // does not parse services timestamps here since it's not queried afterward
+                                new HashMap<>())));
+                    }
+                }
+            }
+            return result;
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to batch-get votes", e);
+            return ImmutableList.of();
+        }
+    }
+
+    private final Type servicesMapType = new TypeToken<Map<String, Long>>(){}.getType();
+    private final Gson gson = new Gson();
+
+    @Override
+    public VoteStreak getVoteStreak(UUID player, boolean required) {
+        Preconditions.checkNotNull(player, "player");
+        StreaksConfiguration streaksConfiguration = SuperbVote.getPlugin().getConfiguration().getStreaksConfiguration();
+        Preconditions.checkArgument(streaksConfiguration.isEnabled(), "streaks not enabled");
+        if (!required && !streaksConfiguration.isPlaceholdersEnabled()) {
+            return null;
+        }
+
+        try (Connection connection = dbPool.getConnection()) {
+            try (PreparedStatement statement =
+                         connection.prepareStatement("SELECT streak, days, DATEDIFF(CURRENT_DATE(), last_day), services, UNIX_TIMESTAMP() FROM " + streaksTableName
+                                 + " WHERE uuid = ?")) {
+                statement.setString(1, player.toString());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+						int daysDifference = resultSet.getInt(3);
+						// e.g: last vote on 10/03 11 PM,
+                        //        on 10/04 -> 1 day difference, player will be able to vote at 11 PM, leaving him 1 hour to remember about it
+                        //        on 10/05 -> 2 days difference, hasn't voted but can vote until 11:59 PM, total of 25 hours to think about voting
+                        //        on 10/06 -> 3 days difference, hasn't voted, break the streak
+                        // this can be improved with a player-based time, leaving him exactly the required interval of ]24;48[h to vote
+                        if (daysDifference > 2) {
+                            // reset vote streak
+                            try (PreparedStatement resetStatement = connection.prepareStatement("UPDATE " + streaksTableName + " SET streak = 0, days = 0, services = '{}'" +
+                                    " WHERE uuid = ?")) {
+                            	resetStatement.setString(1, player.toString());
+                                resetStatement.executeUpdate();
+                            }
+                            return new VoteStreak(player, 0, 0, Maps.newHashMap());
+                        }
+
+                        // services : map a service name to time since last vote in seconds
+                        Map<String, Long> services = gson.fromJson(resultSet.getString(4), servicesMapType);
+                        long unixTimestamp = resultSet.getLong(5);
+                        return new VoteStreak(player, resultSet.getInt(1), resultSet.getInt(2), services.entrySet().stream()
+                                .map(entry -> Maps.immutableEntry(entry.getKey(), unixTimestamp - entry.getValue()))
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+                    } else {
+                        return new VoteStreak(player, 0, 0, Maps.newHashMap());
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get or reset vote streak for " + player.toString(), e);
+            return new VoteStreak(player, 0, 0, Maps.newHashMap());
         }
     }
 
