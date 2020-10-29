@@ -78,9 +78,9 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
                     }
                 }
                 try (ResultSet t = connection.getMetaData().getTables(null, null, streaksTableName, null)) {
-                	if (!t.next()) {
-                		try (Statement statement = connection.createStatement()) {
-                		    statement.executeUpdate("CREATE TABLE " + streaksTableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, streak INT NOT NULL DEFAULT 1, days INT NOT " +
+                    if (!t.next()) {
+                        try (Statement statement = connection.createStatement()) {
+                            statement.executeUpdate("CREATE TABLE " + streaksTableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, streak INT NOT NULL DEFAULT 1, days INT NOT " +
                                     "NULL DEFAULT 1, last_day DATE NOT NULL DEFAULT CURRENT_DATE(), services TEXT NOT NULL DEFAULT '{}', " +
                                     "CHECK(JSON_VALID(services)))");
                             statement.executeUpdate("CREATE INDEX uuid_last_day_idx ON " + streaksTableName + " (uuid, last_day)");
@@ -130,8 +130,8 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
             }
 
             if (SuperbVote.getPlugin().getConfiguration().getStreaksConfiguration().isEnabled()) {
-            	VoteStreak currentStreak = getVoteStreak(vote.getUuid(), true);
-            	if (currentStreak.getCount() == 0 && currentStreak.getDays() == 0) {
+                VoteStreak currentStreak = getVoteStreak(vote.getUuid(), true);
+                if (currentStreak.getCount() == 0 && currentStreak.getDays() == 0) {
                     try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + streaksTableName + " (uuid, services) VALUES (?, JSON_SET('{}', ?, " +
                             "UNIX_TIMESTAMP())) ON DUPLICATE KEY UPDATE streak = 1, days = 1, services = JSON_SET('{}', ?, UNIX_TIMESTAMP()), last_day = CURRENT_DATE()")) {
                         statement.setString(1, vote.getUuid().toString());
@@ -141,7 +141,7 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
                         statement.executeUpdate();
                     }
                 }
-            	else {
+                else {
                     try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + streaksTableName + " (uuid, services) VALUES (?, JSON_SET('{}', ?, " +
                             "UNIX_TIMESTAMP())) ON DUPLICATE KEY UPDATE streak = streak + 1, days = days + LEAST(1, DATEDIFF(CURRENT_DATE(), last_day))," +
                             " services = JSON_SET(services, ?, UNIX_TIMESTAMP()), last_day = CURRENT_DATE()")) {
@@ -326,17 +326,17 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
 
     @Override
     public List<Map.Entry<PlayerVotes, VoteStreak>> getAllPlayersAndStreaksWithNoVotesToday(List<UUID> onlinePlayers) {
-    	Map<UUID, PlayerVotes> noVotes = getAllPlayersWithNoVotesToday(onlinePlayers).stream()
+        Map<UUID, PlayerVotes> noVotes = getAllPlayersWithNoVotesToday(onlinePlayers).stream()
                 .collect(Collectors.toMap(PlayerVotes::getUuid, p -> p));
-    	if (noVotes.isEmpty()) {
-    	    return ImmutableList.of();
+        if (noVotes.isEmpty()) {
+            return ImmutableList.of();
         }
 
-    	List<Map.Entry<PlayerVotes, VoteStreak>> result = new ArrayList<>();
+        List<Map.Entry<PlayerVotes, VoteStreak>> result = new ArrayList<>();
         try (Connection connection = dbPool.getConnection()) {
             String valueStatement = Joiner.on(", ").join(Collections.nCopies(noVotes.size(), "?"));
             try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, streak, days FROM " + streaksTableName + " WHERE uuid IN (" + valueStatement + ")")) {
-            	List<PlayerVotes> noVotesList = new ArrayList<>(noVotes.values());
+                List<PlayerVotes> noVotesList = new ArrayList<>(noVotes.values());
                 for (int i = 0; i < noVotesList.size(); i++) {
                     statement.setString(i + 1, noVotesList.get(i).toString());
                 }
@@ -378,8 +378,8 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
                 statement.setString(1, player.toString());
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
-						int daysDifference = resultSet.getInt(3);
-						// e.g: last vote on 10/03 11 PM,
+                        int daysDifference = resultSet.getInt(3);
+                        // e.g: last vote on 10/03 11 PM,
                         //        on 10/04 -> 1 day difference, player will be able to vote at 11 PM, leaving him 1 hour to remember about it
                         //        on 10/05 -> 2 days difference, hasn't voted but can vote until 11:59 PM, total of 25 hours to think about voting
                         //        on 10/06 -> 3 days difference, hasn't voted, break the streak
@@ -388,7 +388,7 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
                             // reset vote streak
                             try (PreparedStatement resetStatement = connection.prepareStatement("UPDATE " + streaksTableName + " SET streak = 0, days = 0, services = '{}'" +
                                     " WHERE uuid = ?")) {
-                            	resetStatement.setString(1, player.toString());
+                                resetStatement.setString(1, player.toString());
                                 resetStatement.executeUpdate();
                             }
                             return new VoteStreak(player, 0, 0, Maps.newHashMap());

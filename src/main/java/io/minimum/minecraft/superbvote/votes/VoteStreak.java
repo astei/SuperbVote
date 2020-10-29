@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 public class VoteStreak {
-	private final UUID uuid;
-	private final int count, days;
-	private final Map<String, Long> services;
+    private final UUID uuid;
+    private final int count, days;
+    private final Map<String, Long> services;
 }
