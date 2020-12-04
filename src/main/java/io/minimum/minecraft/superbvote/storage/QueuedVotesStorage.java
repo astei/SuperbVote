@@ -3,6 +3,7 @@ package io.minimum.minecraft.superbvote.storage;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class QueuedVotesStorage {
     private final Map<UUID, List<Vote>> queuedVotes = new ConcurrentHashMap<>(32, 0.75f, 2);
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder().setDateFormat("MMM d, yyyy h:mm:ss").create();
     private final File saveTo;
 
     public QueuedVotesStorage(File file) throws IOException {
