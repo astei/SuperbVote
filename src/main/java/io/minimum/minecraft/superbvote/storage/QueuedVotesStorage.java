@@ -3,15 +3,17 @@ package io.minimum.minecraft.superbvote.storage;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.votes.Vote;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -20,7 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class QueuedVotesStorage {
     private final Map<UUID, List<Vote>> queuedVotes = new ConcurrentHashMap<>(32, 0.75f, 2);
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder().setDateFormat("MMM d, yyyy h:mm:ss").create();
     private final File saveTo;
 
     public QueuedVotesStorage(File file) throws IOException {
@@ -37,6 +39,11 @@ public class QueuedVotesStorage {
                     queuedVotes.put(entry.getKey(), new CopyOnWriteArrayList<>(entry.getValue()));
                 }
             }
+        } catch (JsonSyntaxException e) {
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            String movedName = String.format("%s-broken-%s", saveTo.getName(), date);
+            SuperbVote.getPlugin().getLogger().severe("Your queued vote storage file is corrupted. Starting fresh by moving it to " + movedName + ".");
+            Files.move(saveTo.toPath(), Paths.get(saveTo.getParent()).resolve(movedName));
         }
     }
 
