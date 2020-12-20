@@ -77,13 +77,16 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
                         }
                     }
                 }
-                try (ResultSet t = connection.getMetaData().getTables(null, null, streaksTableName, null)) {
-                    if (!t.next()) {
-                        try (Statement statement = connection.createStatement()) {
-                            statement.executeUpdate("CREATE TABLE " + streaksTableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, streak INT NOT NULL DEFAULT 1, days INT NOT " +
-                                    "NULL DEFAULT 1, last_day DATE NOT NULL DEFAULT CURRENT_DATE(), services TEXT NOT NULL DEFAULT '{}', " +
-                                    "CHECK(JSON_VALID(services)))");
-                            statement.executeUpdate("CREATE INDEX uuid_last_day_idx ON " + streaksTableName + " (uuid, last_day)");
+
+                if (SuperbVote.getPlugin().getConfiguration().getStreaksConfiguration().isEnabled()) {
+                    try (ResultSet t = connection.getMetaData().getTables(null, null, streaksTableName, null)) {
+                        if (!t.next()) {
+                            try (Statement statement = connection.createStatement()) {
+                                statement.executeUpdate("CREATE TABLE " + streaksTableName + " (uuid VARCHAR(36) PRIMARY KEY NOT NULL, streak INT NOT NULL DEFAULT 1, days INT NOT " +
+                                        "NULL DEFAULT 1, last_day DATE NOT NULL DEFAULT CURRENT_DATE(), services TEXT NOT NULL DEFAULT '{}', " +
+                                        "CHECK(JSON_VALID(services)))");
+                                statement.executeUpdate("CREATE INDEX uuid_last_day_idx ON " + streaksTableName + " (uuid, last_day)");
+                            }
                         }
                     }
                 }
@@ -366,8 +369,7 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
     public VoteStreak getVoteStreak(UUID player, boolean required) {
         Preconditions.checkNotNull(player, "player");
         StreaksConfiguration streaksConfiguration = SuperbVote.getPlugin().getConfiguration().getStreaksConfiguration();
-        Preconditions.checkArgument(streaksConfiguration.isEnabled(), "streaks not enabled");
-        if (!required && !streaksConfiguration.isPlaceholdersEnabled()) {
+        if (!streaksConfiguration.isEnabled() || (!required && !streaksConfiguration.isPlaceholdersEnabled())) {
             return null;
         }
 
