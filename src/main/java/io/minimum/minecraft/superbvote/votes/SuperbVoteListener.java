@@ -96,7 +96,9 @@ public class SuperbVoteListener implements Listener {
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+        long delay = 100L; // 100 ticks = 5 seconds to delay
+
+        Bukkit.getScheduler().runTaskLaterAsynchronously(SuperbVote.getPlugin(), () -> {
             // Update names in MySQL, if it is being used.
             if (SuperbVote.getPlugin().getVoteStorage() instanceof MysqlVoteStorage) {
                 ((MysqlVoteStorage) SuperbVote.getPlugin().getVoteStorage()).updateName(event.getPlayer());
@@ -120,7 +122,7 @@ public class SuperbVoteListener implements Listener {
                 MessageContext context = new MessageContext(null, pv, event.getPlayer());
                 SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer(), context);
             }
-        });
+        }, delay);
     }
 
     private void afterVoteProcessing() {
