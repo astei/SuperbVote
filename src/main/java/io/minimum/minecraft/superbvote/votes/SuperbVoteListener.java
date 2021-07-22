@@ -108,6 +108,10 @@ public class SuperbVoteListener implements Listener {
             PlayerVotes pv = SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId());
             List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
             if (!votes.isEmpty()) {
+                // Send message to player letting them know why they're receiving a bunch of random gifts
+                String queueMessage = ChatColor.translateAlternateColorCodes('&', SuperbVote.getPlugin().getConfig().getString("queue-message"));
+                event.getPlayer().sendMessage(queueMessage);
+
                 for (Vote vote : votes) {
                     processVote(pv, vote, false, false, true);
                     pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(),pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
