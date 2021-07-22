@@ -126,7 +126,9 @@ public class SuperbVoteListener implements Listener {
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
+        long delay = 100L; // 100 ticks = 5 seconds to delay
+
+        Bukkit.getScheduler().runTaskLaterAsynchronously(SuperbVote.getPlugin(), () -> {
             // Update names in MySQL, if it is being used.
             if (SuperbVote.getPlugin().getVoteStorage() instanceof MysqlVoteStorage) {
                 ((MysqlVoteStorage) SuperbVote.getPlugin().getVoteStorage()).updateName(event.getPlayer());
@@ -139,6 +141,10 @@ public class SuperbVoteListener implements Listener {
             VoteStreak voteStreak = voteStorage.getVoteStreakIfSupported(playerUUID, false);
             List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(playerUUID);
             if (!votes.isEmpty()) {
+                // Send message to player letting them know why they're receiving a bunch of random gifts
+                String queueMessage = ChatColor.translateAlternateColorCodes('&', SuperbVote.getPlugin().getConfig().getString("queue-message"));
+                event.getPlayer().sendMessage(queueMessage);
+
                 for (Vote vote : votes) {
                     processVote(pv, voteStreak, vote, false, false, true);
                     pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(),pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
@@ -153,7 +159,7 @@ public class SuperbVoteListener implements Listener {
                 MessageContext context = new MessageContext(null, pv, voteStreak, event.getPlayer());
                 SuperbVote.getPlugin().getConfiguration().getReminderMessage().sendAsReminder(event.getPlayer(), context);
             }
-        });
+        }, delay);
     }
 
     private void afterVoteProcessing() {
