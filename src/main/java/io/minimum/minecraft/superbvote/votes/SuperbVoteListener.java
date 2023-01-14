@@ -12,6 +12,7 @@ import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -84,6 +85,51 @@ public class SuperbVoteListener implements Listener {
         Optional<Player> player = context.getPlayer().map(OfflinePlayer::getPlayer);
         boolean hideBroadcast = player.isPresent() && player.get().hasPermission("superbvote.bypassbroadcast");
 
+        // Get the plugin config instance
+        FileConfiguration config = SuperbVote.getPlugin().getConfig();
+
+        // Get the current vote count
+        int votes = config.getInt("votes.globalVotes");
+
+        // Increment the vote count
+        votes++;
+
+        // Update the vote count in the config
+        config.set("votes.globalVotes", votes);
+
+        // Get the current vote goal
+        int goal = config.getInt("votes.voteGoal");
+
+        // Check if the vote goal has been reached
+        if (votes >= goal) {
+            // Broadcast the goal reached message
+            for (String text : config.getStringList("votes.goalText")) {
+                Bukkit.broadcastMessage(text);
+            }
+
+            // Double the vote goal
+            goal *= config.getInt("votes.multiply");
+            // Update the goal in the config
+            config.set("votes.voteGoal", goal);
+
+            // Reset the vote count
+            config.set("votes.globalVotes", 0);
+
+            // Execute the commands in the config
+            for (String command : config.getStringList("votes.commandGoal")) {
+                Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command));
+            }
+        } else {
+            // Broadcast the vote message
+            for (String text : config.getStringList("votes.voteText")) {
+                text = text.replace("%votes%", String.valueOf(votes)).replace("%goal%", String.valueOf(goal));
+                Bukkit.broadcastMessage(text);
+            }
+        }
+
+        // Save the config
+        SuperbVote.getPlugin().saveConfig();
+
         if (bestRewards.isEmpty()) {
             throw new RuntimeException("No vote rewards found for '" + vote + "'");
         }
@@ -141,7 +187,7 @@ public class SuperbVoteListener implements Listener {
             if (!votes.isEmpty()) {
                 for (Vote vote : votes) {
                     processVote(pv, voteStreak, vote, false, false, true);
-                    pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(),pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
+                    pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(), pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
                 }
                 afterVoteProcessing();
             }
