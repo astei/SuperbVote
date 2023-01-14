@@ -4,6 +4,7 @@
 # https://github.com/minecrafter/SuperbVote/wiki
 
 # Database configuration.
+
 storage:
   database: json
   json:
@@ -19,6 +20,28 @@ storage:
 
 # General vote configuration.
 votes:
+  voteGoal: 100
+
+  globalVotes: 0
+
+  # When the goal is reached, this number will multiply the goal
+  # Set 1 to cancel the multiply goal
+  multiply: 2
+
+  goalText:
+    - "We hit the vote target"
+
+  # Placeholders:
+  # %votes% - Return the votes number
+  # %goal% - Return the atual goal
+
+  voteText: |-
+    We have %votes% and the mark is %goal%
+
+  # List the commands that will be executed when the votes goal is reached
+
+  commandGoal:
+    - say goal votes
   # At least this many seconds must pass before allowing another vote (per-service). This will apply per service.
   # Default: 3600 seconds (1 hour)
   cooldown-per-service: 3600
