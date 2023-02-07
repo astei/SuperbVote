@@ -3,6 +3,7 @@ package io.minimum.minecraft.superbvote.votes;
 import com.vexsoftware.votifier.model.VotifierEvent;
 import io.minimum.minecraft.superbvote.SuperbVote;
 import io.minimum.minecraft.superbvote.commands.SuperbVoteCommand;
+import io.minimum.minecraft.superbvote.configuration.SuperbVoteConfiguration;
 import io.minimum.minecraft.superbvote.configuration.message.MessageContext;
 import io.minimum.minecraft.superbvote.signboard.TopPlayerSignFetcher;
 import io.minimum.minecraft.superbvote.storage.MysqlVoteStorage;
@@ -88,6 +89,14 @@ public class SuperbVoteListener implements Listener {
             throw new RuntimeException("No vote rewards found for '" + vote + "'");
         }
 
+        boolean hasAlreadyVoted = SuperbVote.getPlugin()
+                .getVoteStorage()
+                .hasVotedToday(vote.getUuid()); // TODO: use getVotes(vote.getReceived()) and add lastVote to PlayerVotes
+        if (hasAlreadyVoted && SuperbVote.getPlugin().getConfig().getBoolean("votes.one-vote-per-day")) {
+            Date todoReplace = new Date(); // TODO: replace with lastVote date
+            SuperbVote.getPlugin().getLogger().log(Level.INFO, "Discarding vote: " + vote.getName() + " already voted the same day at " + todoReplace);
+            return;
+        }
         if (queue) {
             if (!SuperbVote.getPlugin().getConfiguration().shouldQueueVotes()) {
                 SuperbVote.getPlugin().getLogger().log(Level.WARNING, "Ignoring vote from " + vote.getName() + " (service: " +
