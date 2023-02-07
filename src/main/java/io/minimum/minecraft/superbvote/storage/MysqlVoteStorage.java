@@ -216,19 +216,19 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
     public PlayerVotes getVotes(UUID player) {
         Preconditions.checkNotNull(player, "player");
         try (Connection connection = dbPool.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT last_name, votes FROM " + tableName + " WHERE uuid = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT last_name, votes, last_vote FROM " + tableName + " WHERE uuid = ?")) {
                 statement.setString(1, player.toString());
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
-                        return new PlayerVotes(player, resultSet.getString(1), resultSet.getInt(2), PlayerVotes.Type.CURRENT);
+                        return new PlayerVotes(player, resultSet.getString(1), resultSet.getInt(2), resultSet.getDate(3), PlayerVotes.Type.CURRENT);
                     } else {
-                        return new PlayerVotes(player, null, 0, PlayerVotes.Type.CURRENT);
+                        return new PlayerVotes(player, null, 0, null, PlayerVotes.Type.CURRENT);
                     }
                 }
             }
         } catch (SQLException e) {
             SuperbVote.getPlugin().getLogger().log(Level.SEVERE, "Unable to get votes for " + player.toString(), e);
-            return new PlayerVotes(player, null, 0, PlayerVotes.Type.CURRENT);
+            return new PlayerVotes(player, null, 0, null, PlayerVotes.Type.CURRENT);
         }
     }
 
@@ -236,14 +236,14 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
     public List<PlayerVotes> getTopVoters(int amount, int page) {
         int offset = page * amount;
         try (Connection connection = dbPool.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, last_name, votes FROM " + tableName + " WHERE votes > 0 ORDER BY votes DESC " +
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, last_name, votes, last_vote FROM " + tableName + " WHERE votes > 0 ORDER BY votes DESC " +
                     "LIMIT " + amount + " OFFSET " + offset)) {
                 try (ResultSet resultSet = statement.executeQuery()) {
                     List<PlayerVotes> records = new ArrayList<>();
                     while (resultSet.next()) {
                         UUID uuid = UUID.fromString(resultSet.getString(1));
                         String name = resultSet.getString(2);
-                        records.add(new PlayerVotes(uuid, name, resultSet.getInt(3), PlayerVotes.Type.CURRENT));
+                        records.add(new PlayerVotes(uuid, name, resultSet.getInt(3), resultSet.getDate(4), PlayerVotes.Type.CURRENT));
                     }
                     return records;
                 }
@@ -293,7 +293,7 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
         List<PlayerVotes> votes = new ArrayList<>();
         try (Connection connection = dbPool.getConnection()) {
             String valueStatement = Joiner.on(", ").join(Collections.nCopies(onlinePlayers.size(), "?"));
-            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, last_name, votes, (DATE(last_vote) = CURRENT_DATE()) AS has_voted_today FROM " + tableName + " WHERE uuid IN (" + valueStatement + ")")) {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, last_name, votes, last_vote, (DATE(last_vote) = CURRENT_DATE()) AS has_voted_today FROM " + tableName + " WHERE uuid IN (" + valueStatement + ")")) {
                 for (int i = 0; i < onlinePlayers.size(); i++) {
                     statement.setString(i + 1, onlinePlayers.get(i).toString());
                 }
@@ -302,12 +302,13 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
                     while (resultSet.next()) {
                         UUID uuid = UUID.fromString(resultSet.getString(1));
                         found.add(uuid);
-                        if (resultSet.getBoolean(4)) {
+                        if (resultSet.getBoolean(5)) {
                             continue; // already voted today
                         }
                         PlayerVotes pv = new PlayerVotes(UUID.fromString(resultSet.getString(1)),
                                 resultSet.getString(2),
                                 resultSet.getInt(3),
+                                resultSet.getDate(4),
                                 PlayerVotes.Type.CURRENT);
                         votes.add(pv);
                     }
@@ -317,7 +318,7 @@ public class MysqlVoteStorage implements ExtendedVoteStorage {
                 List<UUID> missing = new ArrayList<>(onlinePlayers);
                 missing.removeAll(found);
                 for (UUID uuid : missing) {
-                    votes.add(new PlayerVotes(uuid, null, 0, PlayerVotes.Type.CURRENT));
+                    votes.add(new PlayerVotes(uuid, null, 0, null, PlayerVotes.Type.CURRENT));
                 }
             }
             return votes;

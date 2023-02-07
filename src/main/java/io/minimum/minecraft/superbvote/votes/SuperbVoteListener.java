@@ -11,6 +11,7 @@ import io.minimum.minecraft.superbvote.storage.VoteStorage;
 import io.minimum.minecraft.superbvote.util.BrokenNag;
 import io.minimum.minecraft.superbvote.util.PlayerVotes;
 import io.minimum.minecraft.superbvote.votes.rewards.VoteReward;
+import org.apache.commons.lang3.time.DateUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -43,7 +44,7 @@ public class SuperbVoteListener implements Listener {
             VoteStorage voteStorage = SuperbVote.getPlugin().getVoteStorage();
             VoteStreak voteStreak = voteStorage.getVoteStreakIfSupported(op.getUniqueId(), false);
             PlayerVotes pvCurrent = voteStorage.getVotes(op.getUniqueId());
-            PlayerVotes pv = new PlayerVotes(op.getUniqueId(), op.getName(), pvCurrent.getVotes() + 1, PlayerVotes.Type.FUTURE);
+            PlayerVotes pv = new PlayerVotes(op.getUniqueId(), op.getName(), pvCurrent.getVotes() + 1, pvCurrent.getLastVote(), PlayerVotes.Type.FUTURE);
             Vote vote = new Vote(op.getName(), op.getUniqueId(), event.getVote().getServiceName(),
                     event.getVote().getAddress().equals(SuperbVoteCommand.FAKE_HOST_NAME_FOR_VOTE), worldName, new Date());
 
@@ -89,12 +90,13 @@ public class SuperbVoteListener implements Listener {
             throw new RuntimeException("No vote rewards found for '" + vote + "'");
         }
 
-        boolean hasAlreadyVoted = SuperbVote.getPlugin()
-                .getVoteStorage()
-                .hasVotedToday(vote.getUuid()); // TODO: use getVotes(vote.getReceived()) and add lastVote to PlayerVotes
-        if (hasAlreadyVoted && SuperbVote.getPlugin().getConfig().getBoolean("votes.one-vote-per-day")) {
-            Date todoReplace = new Date(); // TODO: replace with lastVote date
-            SuperbVote.getPlugin().getLogger().log(Level.INFO, "Discarding vote: " + vote.getName() + " already voted the same day at " + todoReplace);
+        if (pv.getLastVote() != null
+            && DateUtils.isSameDay(pv.getLastVote(), vote.getReceived())
+            && SuperbVote.getPlugin().getConfig().getBoolean("votes.one-vote-per-day")) {
+
+            SuperbVote.getPlugin()
+                    .getLogger()
+                    .log(Level.INFO, "Discarding vote: " + vote.getName() + " already received a vote the same day at " + vote.getReceived());
             return;
         }
         if (queue) {
@@ -150,7 +152,7 @@ public class SuperbVoteListener implements Listener {
             if (!votes.isEmpty()) {
                 for (Vote vote : votes) {
                     processVote(pv, voteStreak, vote, false, false, true);
-                    pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(),pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
+                    pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(),pv.getVotes() + 1, pv.getLastVote(), PlayerVotes.Type.CURRENT);
                 }
                 afterVoteProcessing();
             }
