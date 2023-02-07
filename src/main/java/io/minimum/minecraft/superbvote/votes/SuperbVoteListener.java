@@ -90,9 +90,9 @@ public class SuperbVoteListener implements Listener {
             throw new RuntimeException("No vote rewards found for '" + vote + "'");
         }
 
-        if (pv.getLastVote() != null
-            && DateUtils.isSameDay(pv.getLastVote(), vote.getReceived())
-            && SuperbVote.getPlugin().getConfig().getBoolean("votes.one-vote-per-day")) {
+        if (SuperbVote.getPlugin().getConfig().getBoolean("votes.one-vote-per-day")
+            && pv.getLastVote() != null
+            && DateUtils.isSameDay(pv.getLastVote(), vote.getReceived())) {
 
             SuperbVote.getPlugin()
                     .getLogger()
