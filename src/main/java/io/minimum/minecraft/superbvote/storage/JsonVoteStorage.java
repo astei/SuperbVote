@@ -143,8 +143,10 @@ public class JsonVoteStorage implements VoteStorage {
         rwl.readLock().lock();
         try {
             PlayerRecord pr = voteCounts.get(player);
-            return new PlayerVotes(player, pr != null ? pr.lastKnownUsername : null, pr == null ? 0 : pr.votes,
-                    PlayerVotes.Type.CURRENT);
+            if (pr == null) {
+                return new PlayerVotes(player, null, 0, null, PlayerVotes.Type.CURRENT);
+            }
+            return new PlayerVotes(player, pr.lastKnownUsername, pr.votes, Date.from(Instant.ofEpochMilli(pr.lastVoted)), PlayerVotes.Type.CURRENT);
         } finally {
             rwl.readLock().unlock();
         }
@@ -160,7 +162,8 @@ public class JsonVoteStorage implements VoteStorage {
                     .sorted(Collections.reverseOrder(Comparator.comparing(Map.Entry::getValue)))
                     .skip(skip)
                     .limit(amount)
-                    .map(e -> new PlayerVotes(e.getKey(), e.getValue().lastKnownUsername, e.getValue().votes, PlayerVotes.Type.CURRENT))
+                    .map(e -> new PlayerVotes(e.getKey(), e.getValue().lastKnownUsername, e.getValue().votes,
+                            Date.from(Instant.ofEpochMilli(e.getValue().lastVoted)), PlayerVotes.Type.CURRENT))
                     .collect(Collectors.toList());
         } finally {
             rwl.readLock().unlock();

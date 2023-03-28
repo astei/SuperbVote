@@ -26,6 +26,9 @@ votes:
   # Whether or not to treat fake votes as real votes
   process-fake-votes: true
 
+  # Whether to allow only one vote per day for each player
+  one-vote-per-day: false
+
 # Streaks configuration
 # Important: Streaks does not support JSON storage
 streaks:

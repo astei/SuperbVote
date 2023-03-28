@@ -4,7 +4,7 @@ author: tuxed
 version: ${project.version}
 depend: [Votifier]
 softdepend: [Vault, PlaceholderAPI]
-api-version: "1.13"
+api-version: "1.19"
 commands:
   superbvote:
     description: SuperbVote main command.
